@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Grid adjacency – Approach 1 (Naive)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --cols: 20;
+    --rows: 20;
+    --cell-w: 10px;   /* width  */
+    --cell-h: 20px;   /* height */
+    --gap: 0px;
+
+    --base: #eef2f7;
+    --border: #d8dee9;
+    --hover: #ffd54f;     /* center */
+    --neighbor: #ffecb3;  /* neighbors */
+  }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 20px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--cell-w));
+    grid-auto-rows: var(--cell-h);
+    gap: var(--gap);
+    width: calc(var(--cols) * var(--cell-w));
+    border: 1px solid var(--border);
+    user-select: none;
+    contain: content;
+  }
+  .cell {
+    box-sizing: border-box;
+    background: var(--base);
+    outline: 1px solid var(--border);
+    will-change: background-color;
+  }
+  .cell.is-hover    { background: var(--hover); }
+  .cell.is-neighbor { background: var(--neighbor); }
+
+  .log { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; background:#f8f9fb; border:1px solid #e5e7eb; padding:10px; border-radius:6px; max-width: 720px;}
+  button { padding: 6px 10px; }
+</style>
+</head>
+<body>
+  <h2>Approach 1 — Naive (per-cell listeners, recompute neighbors each time)</h2>
+
+  <div class="controls">
+    <label><input type="checkbox" id="diagToggle" /> Include diagonals (8-neighbors)</label>
+    <button id="runBtn">Run benchmark</button>
+    <button id="clearBtn">Clear highlight</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="grid" class="grid" aria-label="20x20 grid"></div>
+
+  <h3>Benchmark log</h3>
+  <div id="log" class="log"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Constants ----------
+  const ROWS = 20, COLS = 20;
+  const N = ROWS * COLS;
+
+  // ---------- DOM ----------
+  const grid = document.getElementById('grid');
+  const logEl = document.getElementById('log');
+  const statusEl = document.getElementById('status');
+  const runBtn = document.getElementById('runBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const diagToggle = document.getElementById('diagToggle');
+
+  // ---------- Helpers ----------
+  const toIdx = (r, c) => r * COLS + c;
+  const toRC  = (idx) => [ (idx / COLS) | 0, idx % COLS ];
+  const inBounds = (r, c) => (r >= 0 && r < ROWS && c >= 0 && c < COLS);
+
+  function getNeighbors(r, c, includeDiag) {
+    // recompute each time (naive)
+    const out = [];
+    // 4-neighborhood
+    if (inBounds(r-1, c)) out.push(toIdx(r-1, c)); // up
+    if (inBounds(r+1, c)) out.push(toIdx(r+1, c)); // down
+    if (inBounds(r, c-1)) out.push(toIdx(r, c-1)); // left
+    if (inBounds(r, c+1)) out.push(toIdx(r, c+1)); // right
+    if (includeDiag) {
+      if (inBounds(r-1, c-1)) out.push(toIdx(r-1, c-1));
+      if (inBounds(r-1, c+1)) out.push(toIdx(r-1, c+1));
+      if (inBounds(r+1, c-1)) out.push(toIdx(r+1, c-1));
+      if (inBounds(r+1, c+1)) out.push(toIdx(r+1, c+1));
+    }
+    return out;
+  }
+
+  // ---------- State ----------
+  /** @type {HTMLDivElement[]} */
+  const cells = new Array(N);
+  let lastIdx = -1;
+
+  // ---------- Build grid and attach listeners (naive) ----------
+  const t0 = performance.now();
+  {
+    const frag = document.createDocumentFragment();
+    let idx = 0;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++, idx++) {
+        const el = document.createElement('div');
+        el.className = 'cell';
+        el.dataset.index = String(idx);
+        el.dataset.r = String(r);
+        el.dataset.c = String(c);
+        el.title = `(${r}, ${c})`;
+
+        // Naive: attach two listeners per cell
+        el.addEventListener('mouseenter', onEnter);
+        el.addEventListener('mouseleave', onLeave);
+
+        frag.appendChild(el);
+        cells[idx] = el;
+      }
+    }
+    grid.appendChild(frag);
+  }
+  const coldStartMs = performance.now() - t0;
+
+  function onEnter(e) {
+    const el = e.currentTarget;
+    const idx = Number(el.dataset.index);
+    applyEnter(idx);
+  }
+  function onLeave(e) {
+    const el = e.currentTarget;
+    const idx = Number(el.dataset.index);
+    applyLeave(idx);
+  }
+
+  function clearHighlight() {
+    if (lastIdx !== -1) {
+      // remove last center + its neighbors (recomputed)
+      const [r, c] = toRC(lastIdx);
+      const neigh = getNeighbors(r, c, diagToggle.checked);
+      cells[lastIdx].classList.remove('is-hover');
+      for (let i = 0; i < neigh.length; i++) cells[neigh[i]].classList.remove('is-neighbor');
+      lastIdx = -1;
+    }
+  }
+
+  function applyEnter(idx) {
+    const [r, c] = toRC(idx);
+    const neigh = getNeighbors(r, c, diagToggle.checked);
+    cells[idx].classList.add('is-hover');
+    for (let i = 0; i < neigh.length; i++) cells[neigh[i]].classList.add('is-neighbor');
+    statusEl.textContent = `Hover (${r},${c}) with ${neigh.length} neighbor(s)`;
+  }
+
+  function applyLeave(idx) {
+    const [r, c] = toRC(idx);
+    const neigh = getNeighbors(r, c, diagToggle.checked);
+    cells[idx].classList.remove('is-hover');
+    for (let i = 0; i < neigh.length; i++) cells[neigh[i]].classList.remove('is-neighbor');
+    statusEl.textContent = ``;
+  }
+
+  clearBtn.addEventListener('click', clearHighlight);
+
+  // ---------- Benchmark harness ----------
+  // We simulate a realistic pointer path: serpentine scan over all cells, repeated.
+  function* serpentineIndices() {
+    for (let r = 0; r < ROWS; r++) {
+      if ((r & 1) === 0) {
+        for (let c = 0; c < COLS; c++) yield toIdx(r, c);
+      } else {
+        for (let c = COLS - 1; c >= 0; c--) yield toIdx(r, c);
+      }
+    }
+  }
+
+  async function runBenchmark({passes = 5, repeats = 25} = {}) {
+    // repeats: how many times to traverse the 400-cell serpentine per pass
+    const includeDiag = diagToggle.checked;
+    const eventsCount = N * 2; // mouseenter + mouseleave per cell
+
+    log(`--- Approach 1 (Naive) ---`);
+    log(`Cold start (build grid + ${eventsCount} listeners): ${coldStartMs.toFixed(2)} ms`);
+    log(`Neighbors mode: ${includeDiag ? '8-neighbors' : '4-neighbors'}`);
+    log(`Simulating pointer moves: ${repeats} × 400 cells × (leave+enter)\n`);
+
+    const results = [];
+    for (let p = 0; p < passes; p++) {
+      // ensure clean state
+      clearHighlight();
+      let prev = -1;
+      const t1 = performance.now();
+
+      for (let r = 0; r < repeats; r++) {
+        for (const idx of serpentineIndices()) {
+          // naive behavior: leave previous, then enter new
+          if (prev !== -1) applyLeave(prev);
+          applyEnter(idx);
+          prev = idx;
+        }
+      }
+
+      // final leave to match real pointer leaving the grid
+      if (prev !== -1) { applyLeave(prev); prev = -1; }
+
+      const t2 = performance.now();
+      const totalMoves = repeats * N;
+      const ops = totalMoves; // enter ops; we also did (ops) leave ops
+      const totalEvents = ops * 2;
+      const totalMs = t2 - t1;
+      const perHoverMs = totalMs / ops;
+      const hoversPerSec = 1000 / perHoverMs;
+
+      results.push({ totalMs, perHoverMs, hoversPerSec, totalEvents });
+      log(`Pass ${p+1}/${passes}: total ${totalMs.toFixed(1)} ms | avg ${perHoverMs.toFixed(4)} ms/hover | ${hoversPerSec.toFixed(1)} hovers/s`);
+      await nextFrame(); // yield to keep UI responsive
+    }
+
+    // Aggregate
+    const median = (arr) => {
+      const s = arr.slice().sort((a,b)=>a-b);
+      const m = (s.length-1)/2;
+      return s.length % 2 ? s[m] : (s[m] + s[m+1]) / 2;
+    };
+    const perHoverList = results.map(r => r.perHoverMs);
+    const totalList    = results.map(r => r.totalMs);
+    const hpsList      = results.map(r => r.hoversPerSec);
+
+    const out = {
+      approach: 'Naive',
+      neighbors: includeDiag ? 8 : 4,
+      coldStartMs: Number(coldStartMs.toFixed(2)),
+      passes,
+      repeats,
+      cells: N,
+      listeners: N * 2,
+      perHoverMs_avg: Number((perHoverList.reduce((a,b)=>a+b,0)/perHoverList.length).toFixed(5)),
+      perHoverMs_median: Number(median(perHoverList).toFixed(5)),
+      hoversPerSec_median: Number(median(hpsList).toFixed(1)),
+      totalMs_median: Number(median(totalList).toFixed(1))
+    };
+
+    log(`\nSummary: ${JSON.stringify(out, null, 2)}`);
+    window.__BENCH_APPROACH_1__ = out; // exposed so you can copy or compare later
+  }
+
+  function log(s) { logEl.textContent += s + '\n'; }
+  function nextFrame() { return new Promise(requestAnimationFrame); }
+
+  runBtn.addEventListener('click', () => {
+    logEl.textContent = '';
+    runBenchmark({ passes: 5, repeats: 25 }); // ~10k hovers, decent signal
+  });
+
+})();
+</script>
+</body>
+</html>
