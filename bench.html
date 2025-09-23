@@ -22,10 +22,45 @@
     border:1px solid var(--border);
     user-select:none;
     contain: content;
+    position: relative;          /* for overlay positioning */
+    overflow: hidden;            /* clip overlay shadows at edges */
   }
   .cell{ box-sizing:border-box; background:var(--base); outline:1px solid var(--border); }
   .cell.is-hover{ background: var(--hover); }
   .cell.is-neighbor{ background: var(--neighbor); }
+
+  /* CSS Overlay highlight (Approach 5) */
+  .overlay {
+    position: absolute;
+    width: var(--cw);
+    height: var(--ch);
+    background: var(--hover);
+    pointer-events: none;
+    will-change: transform;       /* single GPU-friendly write per move */
+  }
+  /* 4-neighborhood (cross) */
+  .overlay.cross {
+    box-shadow:
+      /* up, down, left, right */
+      0 calc(-1 * var(--ch)) 0 0 var(--neighbor),
+      0 var(--ch)            0 0 var(--neighbor),
+      calc(-1 * var(--cw)) 0  0 0 var(--neighbor),
+      var(--cw) 0            0 0 var(--neighbor);
+  }
+  /* 8-neighborhood (Chebyshev) = cross + corners */
+  .overlay.cheb {
+    box-shadow:
+      0 calc(-1 * var(--ch)) 0 0 var(--neighbor),
+      0 var(--ch)            0 0 var(--neighbor),
+      calc(-1 * var(--cw)) 0  0 0 var(--neighbor),
+      var(--cw) 0            0 0 var(--neighbor),
+      /* diagonals */
+      calc(-1 * var(--cw)) calc(-1 * var(--ch)) 0 0 var(--neighbor),
+      var(--cw)            calc(-1 * var(--ch)) 0 0 var(--neighbor),
+      calc(-1 * var(--cw)) var(--ch)            0 0 var(--neighbor),
+      var(--cw)            var(--ch)            0 0 var(--neighbor);
+  }
+
   .log{ font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre-wrap;
         background:#f8f9fb; border:1px solid #e5e7eb; padding:10px; border-radius:6px; max-width: 880px;}
   fieldset{ border:1px solid #e5e7eb; border-radius:6px; padding:10px;}
@@ -47,6 +82,7 @@
           <option value="delegation">2) Delegation + Precomputed</option>
           <option value="diff">3) Delegation + Precomputed + Diff</option>
           <option value="bitboard">4) Bitboard (BigInt) + Diff</option>
+          <option value="overlay">5) CSS Overlay (single DOM write)</option>
         </select>
       </label>
       <label>Rows <input id="rows" type="number" min="1" max="500" value="40" style="width:5em"></label>
@@ -394,27 +430,25 @@
     };
   }
 
-  // ===== NEW — Approach 4: Bitboard (BigInt) + Diff =====
+  // ===== Approach 4: Bitboard (BigInt) + Diff =====
   function approachBitboardFactory({ container, rows, cols, diag }) {
     const name = 'Approach 4 — Bitboard (BigInt) + Diff';
     const summaryLabel = 'Bitboard+Diff';
     const N = rows * cols;
     const { grid, cells } = buildGrid(container, rows, cols);
 
-    // Bitboard helpers
     const BIG0 = 0n;
     const one = 1n;
     const COLS = BigInt(cols);
     const FULL = (one << BigInt(N)) - one;
 
-    // Edge masks (within N bits)
     let leftEdge = BIG0, rightEdge = BIG0, topRow = BIG0, bottomRow = BIG0;
     for (let r = 0; r < rows; r++) {
       leftEdge   |= (one << BigInt(r*cols + 0));
       rightEdge  |= (one << BigInt(r*cols + (cols-1)));
     }
     for (let c = 0; c < cols; c++) {
-      topRow     |= (one << BigInt(0*cols + c));
+      topRow     |= (one << BigInt(c));
       bottomRow  |= (one << BigInt((rows-1)*cols + c));
     }
     const notLeft   = FULL ^ leftEdge;
@@ -427,7 +461,6 @@
 
     function neighborsMask(idx) {
       const m = (one << BigInt(idx));
-      // 4-neighbors
       let mask = BIG0;
       mask |= shr(m & notTop, COLS);           // up
       mask |= shl(m & notBottom, COLS);        // down
@@ -442,34 +475,27 @@
       return mask;
     }
 
-    // Iterate all set bits in a BigInt mask, low→high indices
     function forEachSetBit(mask, cb) {
-      let base = 0; // bit index base for the current 32-bit chunk
-      while (mask !== BIG0) {
-        const low32 = Number(mask & 0xFFFFFFFFn) >>> 0;
-        if (low32) {
-          let x = low32;
-          while (x) {
-            const v = x & -x;           // lowest set bit (power of two)
-            const bit = Math.log2(v >>> 0) | 0; // index within 0..31
-            cb(base + bit);
-            x ^= v; // clear that bit
-          }
+      let base = 0;
+      while (mask !== 0n) {
+        let x = Number(mask & 0xFFFFFFFFn) >>> 0; // unsigned 32-bit chunk
+        while (x) {
+          const lsb = x & -x;               // isolate lowest set bit
+          const bit = 31 - Math.clz32(lsb); // 0..31
+          cb(base + bit);
+          x ^= lsb;                         // clear
         }
-        mask = mask >> 32n;
+        mask >>= 32n;
         base += 32;
       }
     }
 
-    // Interactive UX: pointer highlights
     let lastIdx = -1;
-    let lastMask = BIG0; // neighbors (excludes center)
+    let lastMask = BIG0;
 
     function clear(){
       if (lastIdx === -1) return;
-      // remove center
       cells[lastIdx].classList.remove('is-hover');
-      // remove neighbors
       forEachSetBit(lastMask, (i) => { cells[i].classList.remove('is-neighbor'); });
       lastIdx = -1;
       lastMask = BIG0;
@@ -478,15 +504,12 @@
     function highlight(idx) {
       if (idx === lastIdx) return;
       const nextMask = neighborsMask(idx);
-
-      // Diff neighbors: remove prev-only, add next-only
-      const toRemove = lastMask & (FULL ^ nextMask);
-      const toAdd    = nextMask & (FULL ^ lastMask);
+      const toRemove = lastMask & ((~nextMask) & FULL);
+      const toAdd    = nextMask & ((~lastMask) & FULL);
 
       forEachSetBit(toRemove, (i) => { cells[i].classList.remove('is-neighbor'); });
       forEachSetBit(toAdd,    (i) => { cells[i].classList.add('is-neighbor'); });
 
-      // Centers
       if (lastIdx !== -1) cells[lastIdx].classList.remove('is-hover');
       cells[idx].classList.add('is-hover');
 
@@ -509,6 +532,50 @@
     };
   }
 
+  // ===== NEW — Approach 5: CSS Overlay (single DOM write per move) =====
+  function approachOverlayFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 5 — CSS Overlay (single DOM write)';
+    const summaryLabel = 'CSSOverlay';
+    const { grid, cells } = buildGrid(container, rows, cols);
+
+    // Create overlay once
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay ' + (diag ? 'cheb' : 'cross');
+    overlay.style.display = 'none';
+    overlay.style.pointerEvents = 'none';
+
+    // Measure cell size to drive offsets (robust even if CSS vars change)
+    const cw = (cells[0]?.offsetWidth || 10) + 'px';
+    const ch = (cells[0]?.offsetHeight || 20) + 'px';
+    overlay.style.setProperty('--cw', cw);
+    overlay.style.setProperty('--ch', ch);
+
+    grid.appendChild(overlay);
+
+    function moveTo(idx){
+      const [r,c] = toRC(idx, cols);
+      overlay.style.transform = `translate(${c * parseFloat(cw)}px, ${r * parseFloat(ch)}px)`;
+      overlay.style.display = 'block';
+    }
+    function hide(){ overlay.style.display = 'none'; }
+
+    // Interactive UX
+    grid.addEventListener('pointermove', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (!cell || !grid.contains(cell)) return;
+      moveTo(Number(cell.dataset.index));
+    }, { passive: true });
+
+    grid.addEventListener('pointerleave', () => hide());
+
+    return {
+      name, summaryLabel, listeners: 2,
+      transition(prev, next){ moveTo(next); },
+      clear(){ hide(); },
+      finalize(){ hide(); }
+    };
+  }
+
   // ===== Wire up UI =====
   const approachSel = $('approach');
   const rowsInp = $('rows');
@@ -521,7 +588,8 @@
     naive: approachNaiveFactory,
     delegation: approachDelegationFactory,
     diff: approachDiffFactory,
-    bitboard: approachBitboardFactory
+    bitboard: approachBitboardFactory,
+    overlay: approachOverlayFactory
   };
 
   $('run').addEventListener('click', async () => {
@@ -545,7 +613,7 @@
       passes: Number(passesInp.value),
       repeats: Number(repeatsInp.value)
     };
-    for (const key of ['naive','delegation','diff','bitboard']) {
+    for (const key of ['naive','delegation','diff','bitboard','overlay']) {
       await runBenchmark(factories[key], cfg);
       log('\n');
     }
