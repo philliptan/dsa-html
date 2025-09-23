@@ -45,6 +45,7 @@
         <select id="approach">
           <option value="naive">1) Naive (per-cell listeners)</option>
           <option value="delegation">2) Delegation + Precomputed</option>
+          <option value="diff">3) Delegation + Precomputed + Diff</option>
         </select>
       </label>
       <label>Rows <input id="rows" type="number" min="1" max="500" value="40" style="width:5em"></label>
@@ -53,7 +54,7 @@
       <label>Passes <input id="passes" type="number" min="1" max="50" value="5" style="width:4em"></label>
       <label>Repeats <input id="repeats" type="number" min="1" max="200" value="25" style="width:4em"></label>
       <button id="run">Run benchmark</button>
-      <button id="runBoth">Run both approaches</button>
+      <button id="runAll">Run all</button>
       <button id="clear">Clear highlight</button>
     </div>
   </fieldset>
@@ -117,8 +118,6 @@
 
   // ===== DRY Benchmark Harness =====
   async function runBenchmark(factory, cfg) {
-    // factory: () => approach instance (with init/build)
-    // cfg: {rows, cols, diag, passes, repeats}
     stage.innerHTML = ''; // fresh mount per run
     const {rows, cols, diag, passes, repeats} = cfg;
 
@@ -126,7 +125,6 @@
     const approach = factory({ container: stage, rows, cols, diag });
     const coldStartMs = performance.now() - t0;
 
-    // augment with common fields
     const N = rows * cols;
     log(`--- ${approach.name} ---`);
     log(`Cold start: ${coldStartMs.toFixed(2)} ms`);
@@ -191,15 +189,12 @@
     const N = rows * cols;
     const { grid, cells } = buildGrid(container, rows, cols);
 
-    // attach listeners (counts toward cold start)
     function getNeighbors(r, c) {
       const out = [];
-      // 4-neighbors
       if (inBounds(r-1,c,rows,cols)) out.push(toIdx(r-1,c,cols));
       if (inBounds(r+1,c,rows,cols)) out.push(toIdx(r+1,c,cols));
       if (inBounds(r,c-1,rows,cols)) out.push(toIdx(r,c-1,cols));
       if (inBounds(r,c+1,rows,cols)) out.push(toIdx(r,c+1,cols));
-      // diagonals
       if (diag) {
         if (inBounds(r-1,c-1,rows,cols)) out.push(toIdx(r-1,c-1,cols));
         if (inBounds(r-1,c+1,rows,cols)) out.push(toIdx(r-1,c+1,cols));
@@ -243,7 +238,7 @@
         lastIdx = -1;
       },
       finalize(prev){
-        if (prev !== -1) leave(prev); // simulate final mouseleave
+        if (prev !== -1) leave(prev);
         lastIdx = -1;
       }
     };
@@ -256,7 +251,6 @@
     const N = rows * cols;
     const { grid, cells } = buildGrid(container, rows, cols);
 
-    // precompute neighbors4/8 (counts toward cold start)
     /** @type {number[][]} */ const neighbors4 = new Array(N);
     /** @type {number[][]} */ const neighbors8 = new Array(N);
     for (let r=0; r<rows; r++){
@@ -278,7 +272,6 @@
       }
     }
 
-    // delegation (interactive UX if you hover)
     grid.addEventListener('pointermove', (e) => {
       const cell = e.target && e.target.closest('.cell');
       if (!cell || !grid.contains(cell)) return;
@@ -320,6 +313,101 @@
     };
   }
 
+  // ===== NEW — Approach 3: Delegation + Precomputed + Differential Update =====
+  function approachDiffFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 3 — Delegation + Precomputed + Diff';
+    const summaryLabel = 'Delegation+Precomputed+Diff';
+    const N = rows * cols;
+    const { grid, cells } = buildGrid(container, rows, cols);
+
+    /** @type {number[][]} */ const neighbors4 = new Array(N);
+    /** @type {number[][]} */ const neighbors8 = new Array(N);
+    for (let r=0; r<rows; r++){
+      for (let c=0; c<cols; c++){
+        const idx = toIdx(r,c,cols);
+        const n4 = [];
+        if (inBounds(r-1,c,rows,cols)) n4.push(toIdx(r-1,c,cols));
+        if (inBounds(r+1,c,rows,cols)) n4.push(toIdx(r+1,c,cols));
+        if (inBounds(r,c-1,rows,cols)) n4.push(toIdx(r,c-1,cols));
+        if (inBounds(r,c+1,rows,cols)) n4.push(toIdx(r,c+1,cols));
+        neighbors4[idx] = n4;
+        const n8 = n4.slice();
+        if (inBounds(r-1,c-1,rows,cols)) n8.push(toIdx(r-1,c-1,cols));
+        if (inBounds(r-1,c+1,rows,cols)) n8.push(toIdx(r-1,c+1,cols));
+        if (inBounds(r+1,c-1,rows,cols)) n8.push(toIdx(r+1,c-1,cols));
+        if (inBounds(r+1,c+1,rows,cols)) n8.push(toIdx(r+1,c+1,cols));
+        neighbors8[idx] = n8;
+      }
+    }
+
+    // mark array for O(k) set-diff (k ≤ 8)
+    const mark = new Uint8Array(N); // 0=none, 1=prev, 2=common
+
+    grid.addEventListener('pointermove', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (!cell || !grid.contains(cell)) return;
+      highlight(Number(cell.dataset.index));
+    }, { passive: true });
+    grid.addEventListener('pointerleave', () => clear());
+
+    let lastIdx = -1;
+
+    function clear(){
+      if (lastIdx === -1) return;
+      const prevNeigh = (diag ? neighbors8[lastIdx] : neighbors4[lastIdx]);
+      cells[lastIdx].classList.remove('is-hover');
+      for (let i=0; i<prevNeigh.length; i++){
+        cells[prevNeigh[i]].classList.remove('is-neighbor');
+      }
+      lastIdx = -1;
+    }
+
+    function highlight(idx){
+      if (idx === lastIdx) return;
+
+      const prevIdx = lastIdx;
+      const prevNeigh = (prevIdx === -1) ? [] : (diag ? neighbors8[prevIdx] : neighbors4[prevIdx]);
+      const nextNeigh = (diag ? neighbors8[idx] : neighbors4[idx]);
+
+      // 1) mark prev neighbors
+      for (let i=0; i<prevNeigh.length; i++) mark[prevNeigh[i]] = 1;
+
+      // 2) add new-only neighbors, mark common
+      for (let i=0; i<nextNeigh.length; i++){
+        const v = nextNeigh[i];
+        if (mark[v] === 1) { mark[v] = 2; } // common
+        else { cells[v].classList.add('is-neighbor'); }
+      }
+
+      // 3) remove neighbors that are no longer neighbors, and clear marks
+      for (let i=0; i<prevNeigh.length; i++){
+        const v = prevNeigh[i];
+        if (mark[v] === 1) { // was prev-only
+          cells[v].classList.remove('is-neighbor');
+        }
+        mark[v] = 0; // clear
+      }
+
+      // 4) update centers
+      if (prevIdx !== -1) {
+        cells[prevIdx].classList.remove('is-hover');
+      }
+      cells[idx].classList.add('is-hover');
+
+      // Note: old center becomes neighbor if adjacent — handled in step (2) because
+      // prevIdx is not in prevNeigh, so if it is in nextNeigh it will be added there.
+
+      lastIdx = idx;
+    }
+
+    return {
+      name, summaryLabel, listeners: 2,
+      transition(prev, next){ highlight(next); },
+      clear,
+      finalize(){ clear(); }
+    };
+  }
+
   // ===== Wire up UI =====
   const approachSel = $('approach');
   const rowsInp = $('rows');
@@ -327,6 +415,12 @@
   const diagInp = $('diag');
   const passesInp = $('passes');
   const repeatsInp = $('repeats');
+
+  const factories = {
+    naive: approachNaiveFactory,
+    delegation: approachDelegationFactory,
+    diff: approachDiffFactory
+  };
 
   $('run').addEventListener('click', async () => {
     logEl.textContent = '';
@@ -337,11 +431,10 @@
       passes: Number(passesInp.value),
       repeats: Number(repeatsInp.value)
     };
-    const factory = approachSel.value === 'naive' ? approachNaiveFactory : approachDelegationFactory;
-    await runBenchmark(factory, cfg);
+    await runBenchmark(factories[approachSel.value], cfg);
   });
 
-  $('runBoth').addEventListener('click', async () => {
+  $('runAll').addEventListener('click', async () => {
     logEl.textContent = '';
     const cfg = {
       rows: Number(rowsInp.value),
@@ -350,9 +443,10 @@
       passes: Number(passesInp.value),
       repeats: Number(repeatsInp.value)
     };
-    await runBenchmark(approachNaiveFactory, cfg);
-    log('\n');
-    await runBenchmark(approachDelegationFactory, cfg);
+    for (const key of ['naive','delegation','diff']) {
+      await runBenchmark(factories[key], cfg);
+      log('\n');
+    }
   });
 
   $('clear').addEventListener('click', () => { stage.innerHTML = ''; });
