@@ -46,6 +46,7 @@
           <option value="naive">1) Naive (per-cell listeners)</option>
           <option value="delegation">2) Delegation + Precomputed</option>
           <option value="diff">3) Delegation + Precomputed + Diff</option>
+          <option value="bitboard">4) Bitboard (BigInt) + Diff</option>
         </select>
       </label>
       <label>Rows <input id="rows" type="number" min="1" max="500" value="40" style="width:5em"></label>
@@ -313,7 +314,7 @@
     };
   }
 
-  // ===== NEW — Approach 3: Delegation + Precomputed + Differential Update =====
+  // ===== Approach 3: Delegation + Precomputed + Differential Update =====
   function approachDiffFactory({ container, rows, cols, diag }) {
     const name = 'Approach 3 — Delegation + Precomputed + Diff';
     const summaryLabel = 'Delegation+Precomputed+Diff';
@@ -340,8 +341,7 @@
       }
     }
 
-    // mark array for O(k) set-diff (k ≤ 8)
-    const mark = new Uint8Array(N); // 0=none, 1=prev, 2=common
+    const mark = new Uint8Array(N);
 
     grid.addEventListener('pointermove', (e) => {
       const cell = e.target && e.target.closest('.cell');
@@ -369,36 +369,137 @@
       const prevNeigh = (prevIdx === -1) ? [] : (diag ? neighbors8[prevIdx] : neighbors4[prevIdx]);
       const nextNeigh = (diag ? neighbors8[idx] : neighbors4[idx]);
 
-      // 1) mark prev neighbors
       for (let i=0; i<prevNeigh.length; i++) mark[prevNeigh[i]] = 1;
-
-      // 2) add new-only neighbors, mark common
       for (let i=0; i<nextNeigh.length; i++){
         const v = nextNeigh[i];
-        if (mark[v] === 1) { mark[v] = 2; } // common
-        else { cells[v].classList.add('is-neighbor'); }
+        if (mark[v] === 1) mark[v] = 2; else cells[v].classList.add('is-neighbor');
       }
-
-      // 3) remove neighbors that are no longer neighbors, and clear marks
       for (let i=0; i<prevNeigh.length; i++){
         const v = prevNeigh[i];
-        if (mark[v] === 1) { // was prev-only
-          cells[v].classList.remove('is-neighbor');
-        }
-        mark[v] = 0; // clear
+        if (mark[v] === 1) cells[v].classList.remove('is-neighbor');
+        mark[v] = 0;
       }
 
-      // 4) update centers
-      if (prevIdx !== -1) {
-        cells[prevIdx].classList.remove('is-hover');
-      }
+      if (prevIdx !== -1) cells[prevIdx].classList.remove('is-hover');
       cells[idx].classList.add('is-hover');
-
-      // Note: old center becomes neighbor if adjacent — handled in step (2) because
-      // prevIdx is not in prevNeigh, so if it is in nextNeigh it will be added there.
 
       lastIdx = idx;
     }
+
+    return {
+      name, summaryLabel, listeners: 2,
+      transition(prev, next){ highlight(next); },
+      clear,
+      finalize(){ clear(); }
+    };
+  }
+
+  // ===== NEW — Approach 4: Bitboard (BigInt) + Diff =====
+  function approachBitboardFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 4 — Bitboard (BigInt) + Diff';
+    const summaryLabel = 'Bitboard+Diff';
+    const N = rows * cols;
+    const { grid, cells } = buildGrid(container, rows, cols);
+
+    // Bitboard helpers
+    const BIG0 = 0n;
+    const one = 1n;
+    const COLS = BigInt(cols);
+    const FULL = (one << BigInt(N)) - one;
+
+    // Edge masks (within N bits)
+    let leftEdge = BIG0, rightEdge = BIG0, topRow = BIG0, bottomRow = BIG0;
+    for (let r = 0; r < rows; r++) {
+      leftEdge   |= (one << BigInt(r*cols + 0));
+      rightEdge  |= (one << BigInt(r*cols + (cols-1)));
+    }
+    for (let c = 0; c < cols; c++) {
+      topRow     |= (one << BigInt(0*cols + c));
+      bottomRow  |= (one << BigInt((rows-1)*cols + c));
+    }
+    const notLeft   = FULL ^ leftEdge;
+    const notRight  = FULL ^ rightEdge;
+    const notTop    = FULL ^ topRow;
+    const notBottom = FULL ^ bottomRow;
+
+    const shl = (x, k) => (x << BigInt(k)) & FULL;
+    const shr = (x, k) => (x >> BigInt(k));
+
+    function neighborsMask(idx) {
+      const m = (one << BigInt(idx));
+      // 4-neighbors
+      let mask = BIG0;
+      mask |= shr(m & notTop, COLS);           // up
+      mask |= shl(m & notBottom, COLS);        // down
+      mask |= shr(m & notLeft, 1);             // left
+      mask |= shl(m & notRight, 1);            // right
+      if (diag) {
+        mask |= shr(m & notTop & notLeft,  COLS + 1n); // up-left
+        mask |= shr(m & notTop & notRight, COLS - 1n); // up-right
+        mask |= shl(m & notBottom & notLeft,  COLS - 1n); // down-left
+        mask |= shl(m & notBottom & notRight, COLS + 1n); // down-right
+      }
+      return mask;
+    }
+
+    // Iterate all set bits in a BigInt mask, low→high indices
+    function forEachSetBit(mask, cb) {
+      let base = 0; // bit index base for the current 32-bit chunk
+      while (mask !== BIG0) {
+        const low32 = Number(mask & 0xFFFFFFFFn) >>> 0;
+        if (low32) {
+          let x = low32;
+          while (x) {
+            const v = x & -x;           // lowest set bit (power of two)
+            const bit = Math.log2(v >>> 0) | 0; // index within 0..31
+            cb(base + bit);
+            x ^= v; // clear that bit
+          }
+        }
+        mask = mask >> 32n;
+        base += 32;
+      }
+    }
+
+    // Interactive UX: pointer highlights
+    let lastIdx = -1;
+    let lastMask = BIG0; // neighbors (excludes center)
+
+    function clear(){
+      if (lastIdx === -1) return;
+      // remove center
+      cells[lastIdx].classList.remove('is-hover');
+      // remove neighbors
+      forEachSetBit(lastMask, (i) => { cells[i].classList.remove('is-neighbor'); });
+      lastIdx = -1;
+      lastMask = BIG0;
+    }
+
+    function highlight(idx) {
+      if (idx === lastIdx) return;
+      const nextMask = neighborsMask(idx);
+
+      // Diff neighbors: remove prev-only, add next-only
+      const toRemove = lastMask & (FULL ^ nextMask);
+      const toAdd    = nextMask & (FULL ^ lastMask);
+
+      forEachSetBit(toRemove, (i) => { cells[i].classList.remove('is-neighbor'); });
+      forEachSetBit(toAdd,    (i) => { cells[i].classList.add('is-neighbor'); });
+
+      // Centers
+      if (lastIdx !== -1) cells[lastIdx].classList.remove('is-hover');
+      cells[idx].classList.add('is-hover');
+
+      lastIdx = idx;
+      lastMask = nextMask;
+    }
+
+    grid.addEventListener('pointermove', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (!cell || !grid.contains(cell)) return;
+      highlight(Number(cell.dataset.index));
+    }, { passive: true });
+    grid.addEventListener('pointerleave', () => clear());
 
     return {
       name, summaryLabel, listeners: 2,
@@ -419,7 +520,8 @@
   const factories = {
     naive: approachNaiveFactory,
     delegation: approachDelegationFactory,
-    diff: approachDiffFactory
+    diff: approachDiffFactory,
+    bitboard: approachBitboardFactory
   };
 
   $('run').addEventListener('click', async () => {
@@ -443,7 +545,7 @@
       passes: Number(passesInp.value),
       repeats: Number(repeatsInp.value)
     };
-    for (const key of ['naive','delegation','diff']) {
+    for (const key of ['naive','delegation','diff','bitboard']) {
       await runBenchmark(factories[key], cfg);
       log('\n');
     }
