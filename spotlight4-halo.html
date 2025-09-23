@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>20×20 Grid – Overlay Highlight</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --cols: 20;
+      --rows: 20;
+      --cell-w: 10px;   /* requested width  */
+      --cell-h: 20px;   /* requested height */
+      --gap: 0px;
+
+      --color-base: #eef2f7;
+      --color-border: #d8dee9;
+
+      --color-center: #ffd54f;     /* center cell */
+      --color-neighbor: #ffecb3;   /* N/E/S/W neighbors */
+      --color-diag: #fff5d6;       /* diagonal neighbors (when enabled) */
+
+      /* hover state vars (updated by JS) */
+      --hover-r: -100;   /* row index; off-screen by default */
+      --hover-c: -100;   /* col index; off-screen by default */
+      --diag-on: 0;      /* 0 or 1; toggled by JS */
+    }
+
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans";
+      margin: 24px;
+      color: #111;
+    }
+
+    .controls{
+      display:flex; gap:16px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
+    }
+    .status{ font-size:12px; color:#444; }
+
+    .grid{
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), var(--cell-w));
+      grid-auto-rows: var(--cell-h);
+      gap: var(--gap);
+      border: 1px solid var(--color-border);
+      width: calc(var(--cols) * var(--cell-w));
+      user-select: none;
+      contain: content;
+      /* helper vars used by ::after */
+      --x: calc(var(--hover-c) * var(--cell-w));
+      --y: calc(var(--hover-r) * var(--cell-h));
+    }
+
+    .cell{
+      box-sizing: border-box;
+      background: var(--color-base);
+      outline: 1px solid var(--color-border);
+      outline-offset: -1px;
+      /* focusable for keyboard navigation */
+      tab-index: 0;
+    }
+    .cell:focus-visible{
+      outline: 2px solid #42a5f5;
+      outline-offset: -2px;
+    }
+
+    /* The overlay that draws center + neighbors using 9 background layers */
+    .grid::after{
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;                /* only visible while hovering/focused */
+      transition: opacity 80ms linear;
+
+      /* Solid rectangles via the “solid gradient” trick */
+      background-image:
+        linear-gradient(var(--color-center) 0 0),   /* center */
+        linear-gradient(var(--color-neighbor) 0 0), /* up */
+        linear-gradient(var(--color-neighbor) 0 0), /* down */
+        linear-gradient(var(--color-neighbor) 0 0), /* left */
+        linear-gradient(var(--color-neighbor) 0 0), /* right */
+        linear-gradient(var(--color-diag) 0 0),     /* up-left */
+        linear-gradient(var(--color-diag) 0 0),     /* up-right */
+        linear-gradient(var(--color-diag) 0 0),     /* down-left */
+        linear-gradient(var(--color-diag) 0 0);     /* down-right */
+
+      background-repeat: no-repeat;
+
+      /* Each layer sized to exactly one cell; diagonals multiplied by --diag-on (0/1) */
+      background-size:
+        var(--cell-w) var(--cell-h),                 /* center */
+        var(--cell-w) var(--cell-h),                 /* up */
+        var(--cell-w) var(--cell-h),                 /* down */
+        var(--cell-w) var(--cell-h),                 /* left */
+        var(--cell-w) var(--cell-h),                 /* right */
+        calc(var(--diag-on) * var(--cell-w)) calc(var(--diag-on) * var(--cell-h)), /* ul */
+        calc(var(--diag-on) * var(--cell-w)) calc(var(--diag-on) * var(--cell-h)), /* ur */
+        calc(var(--diag-on) * var(--cell-w)) calc(var(--diag-on) * var(--cell-h)), /* dl */
+        calc(var(--diag-on) * var(--cell-w)) calc(var(--diag-on) * var(--cell-h)); /* dr */
+
+      /* Position each rectangle at the appropriate cell coordinate */
+      background-position:
+        var(--x) var(--y),                           /* center */
+        var(--x) calc(var(--y) - var(--cell-h)),     /* up */
+        var(--x) calc(var(--y) + var(--cell-h)),     /* down */
+        calc(var(--x) - var(--cell-w)) var(--y),     /* left */
+        calc(var(--x) + var(--cell-w)) var(--y),     /* right */
+        calc(var(--x) - var(--cell-w)) calc(var(--y) - var(--cell-h)), /* ul */
+        calc(var(--x) + var(--cell-w)) calc(var(--y) - var(--cell-h)), /* ur */
+        calc(var(--x) - var(--cell-w)) calc(var(--y) + var(--cell-h)), /* dl */
+        calc(var(--x) + var(--cell-w)) calc(var(--y) + var(--cell-h)); /* dr */
+    }
+
+    /* Visible while hovering/focusing inside the grid */
+    .grid.has-hover::after{ opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label><input type="checkbox" id="diagToggle"> Include diagonals (8-neighborhood)</label>
+    <span class="status" id="status">Hover a cell…</span>
+  </div>
+
+  <div id="grid" class="grid" role="grid" aria-label="20 by 20 cells"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const ROWS = 20, COLS = 20;
+      const grid = document.getElementById('grid');
+      const statusEl = document.getElementById('status');
+      const diagToggle = document.getElementById('diagToggle');
+
+      // Build grid cells (for borders, semantics, keyboard focus)
+      {
+        const frag = document.createDocumentFragment();
+        let idx = 0;
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++, idx++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.setAttribute('role', 'gridcell');
+            cell.tabIndex = 0;
+            cell.dataset.r = r;
+            cell.dataset.c = c;
+            cell.title = `(${r}, ${c})`;
+            frag.appendChild(cell);
+          }
+        }
+        grid.appendChild(frag);
+        grid.setAttribute('aria-rowcount', ROWS);
+        grid.setAttribute('aria-colcount', COLS);
+      }
+
+      function setHover(rc, cc) {
+        grid.style.setProperty('--hover-r', rc);
+        grid.style.setProperty('--hover-c', cc);
+        grid.classList.add('has-hover');
+        statusEl.textContent = `Hovering cell (${rc}, ${cc})`;
+      }
+      function clearHover() {
+        grid.classList.remove('has-hover');
+        statusEl.textContent = 'Hover a cell…';
+      }
+
+      // Pointer: update two CSS variables only (O(1))
+      grid.addEventListener('pointermove', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell || !grid.contains(cell)) return;
+        setHover(+cell.dataset.r, +cell.dataset.c);
+      }, { passive: true });
+
+      grid.addEventListener('pointerleave', clearHover);
+
+      // Keyboard: mirror hover with focus
+      grid.addEventListener('focusin', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        setHover(+cell.dataset.r, +cell.dataset.c);
+      });
+      grid.addEventListener('focusout', (e) => {
+        if (!grid.contains(e.relatedTarget)) clearHover();
+      });
+
+      // Arrow-key navigation between cells (nice UX)
+      grid.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        if (!active || !active.classList.contains('cell')) return;
+
+        let r = +active.dataset.r;
+        let c = +active.dataset.c;
+        let handled = true;
+
+        switch (e.key) {
+          case 'ArrowUp':    r = Math.max(0, r - 1); break;
+          case 'ArrowDown':  r = Math.min(ROWS - 1, r + 1); break;
+          case 'ArrowLeft':  c = Math.max(0, c - 1); break;
+          case 'ArrowRight': c = Math.min(COLS - 1, c + 1); break;
+          default: handled = false;
+        }
+        if (handled) {
+          e.preventDefault();
+          // move focus -> triggers focusin -> updates overlay
+          const next = grid.children[r * COLS + c];
+          if (next) next.focus();
+        }
+      });
+
+      // Diagonals toggle (pure CSS switch via custom property)
+      function updateDiag() {
+        grid.style.setProperty('--diag-on', diagToggle.checked ? 1 : 0);
+      }
+      diagToggle.addEventListener('change', updateDiag);
+      updateDiag(); // init
+    })();
+  </script>
+</body>
+</html>

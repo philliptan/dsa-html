@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Grid Highlight + Benchmark</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --cell-w: 10px;
+      --cell-h: 20px;
+      --cell-gap: 0px;
+      --color-base: #eef2f7;
+      --color-border: #d8dee9;
+      --color-hover: #ffd54f;
+      --color-neighbor: #ffecb3;
+      --color-focus: #42a5f5;
+    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      margin: 24px; color:#111;}
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;}
+    .controls .group { display:flex; gap:6px; align-items:center;}
+    .grid {
+      display:grid;
+      grid-auto-rows: var(--cell-h);
+      gap: var(--cell-gap);
+      border:1px solid var(--color-border);
+      user-select:none;
+      contain: content;
+      position:relative;
+      width: max-content;
+      max-width: 100%;
+      overflow: auto;
+      background: white;
+    }
+    .cell {
+      width: var(--cell-w); height: var(--cell-h);
+      box-sizing: border-box;
+      background: var(--color-base);
+      outline: 1px solid var(--color-border);
+      outline-offset: -1px;
+    }
+    .cell.is-hover { background: var(--color-hover); }
+    .cell.is-neighbor { background: var(--color-neighbor); }
+    .cell:focus-visible { outline:2px solid var(--color-focus); outline-offset:-2px; }
+    .status { margin-top:10px; font-size:12px; color:#444; }
+    table { border-collapse: collapse; margin-top:16px; width:100%; max-width: 100%;}
+    th, td { border:1px solid #ddd; padding:6px 8px; text-align:right; font-variant-numeric: tabular-nums; }
+    th:first-child, td:first-child { text-align:left; }
+    thead th { background:#f5f7fb; position: sticky; top: 0; }
+    .btn { padding:6px 10px; border:1px solid #ccc; background:#fafafa; border-radius:6px; cursor:pointer; }
+    .btn:active { transform: translateY(1px); }
+    .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .spacer { flex: 1 0 auto; }
+    .nowrap { white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <div class="group">
+      <label>Rows <input id="rowsInput" type="number" min="1" max="5000" value="20" style="width:6rem"></label>
+      <label>Cols <input id="colsInput" type="number" min="1" max="5000" value="20" style="width:6rem"></label>
+      <button id="rebuildBtn" class="btn">Rebuild Grid</button>
+    </div>
+    <div class="group">
+      <label><input type="checkbox" id="diagToggle" /> Include diagonals (8-neighborhood)</label>
+    </div>
+    <div class="group">
+      <button id="benchBtn" class="btn">Run Benchmark</button>
+      <button id="clearTableBtn" class="btn">Clear Results</button>
+      <button id="exportBtn" class="btn">Export CSV</button>
+    </div>
+    <span class="status" id="status">Hover a cell…</span>
+  </div>
+
+  <div id="grid" class="grid" role="grid" aria-label="Grid"></div>
+
+  <div class="row">
+    <div class="spacer"></div>
+    <div class="nowrap" style="font-size:12px;color:#555">Cell size: <span class="kbd">10×20px</span> (edit in CSS)</div>
+  </div>
+
+  <table id="resultsTable" aria-label="Benchmark Results">
+    <thead>
+      <tr>
+        <th>Config</th>
+        <th>Cells</th>
+        <th>Build (ms)</th>
+        <th>Adj 4 (ms)</th>
+        <th>Adj 8 (ms)</th>
+        <th>Random Hovers ×1000 (ms)</th>
+        <th>Per Hover (μs)</th>
+        <th>Total (ms)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ---------- Config / State ----------
+    let ROWS = 20, COLS = 20;
+    const gridEl = document.getElementById('grid');
+    const diagToggle = document.getElementById('diagToggle');
+    const statusEl = document.getElementById('status');
+    const rowsInput = document.getElementById('rowsInput');
+    const colsInput = document.getElementById('colsInput');
+    const rebuildBtn = document.getElementById('rebuildBtn');
+    const benchBtn = document.getElementById('benchBtn');
+    const clearTableBtn = document.getElementById('clearTableBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const resultsBody = document.querySelector('#resultsTable tbody');
+
+    /** @type {HTMLDivElement[]} */ let cells = [];
+    /** @type {number[][]} */ let neighbors4 = [];
+    /** @type {number[][]} */ let neighbors8 = [];
+    let lastHighlighted = [];
+    let lastIdx = -1;
+
+    // ---------- Helpers ----------
+    const toIdx = (r,c) => r * COLS + c;
+    const inBounds = (r,c) => r>=0 && r<ROWS && c>=0 && c<COLS;
+
+    function clearGridDom() {
+      gridEl.innerHTML = '';
+      gridEl.style.gridTemplateColumns = `repeat(${COLS}, var(--cell-w))`;
+      gridEl.setAttribute('aria-rowcount', String(ROWS));
+      gridEl.setAttribute('aria-colcount', String(COLS));
+    }
+
+    function clearHighlight() {
+      for (let i=0;i<lastHighlighted.length;i++) {
+        const el = cells[lastHighlighted[i]];
+        if (el) el.classList.remove('is-hover','is-neighbor');
+      }
+      lastHighlighted.length = 0;
+      lastIdx = -1;
+    }
+
+    function applyHighlight(idx) {
+      if (idx === lastIdx) return;
+      clearHighlight();
+      const center = cells[idx];
+      if (!center) return;
+
+      const neigh = (diagToggle.checked ? neighbors8[idx] : neighbors4[idx]);
+
+      center.classList.add('is-hover');
+      for (let i=0;i<neigh.length;i++) cells[neigh[i]].classList.add('is-neighbor');
+
+      lastHighlighted = [idx, ...neigh];
+      lastIdx = idx;
+      statusEl.textContent = `Hovering index ${idx} → (${center.dataset.r}, ${center.dataset.c}) with ${neigh.length} neighbor(s)`;
+    }
+
+    // ---------- Build + Precompute (measured optionally) ----------
+    function buildGridMeasured() {
+      const t0 = performance.now();
+      clearGridDom();
+
+      const total = ROWS * COLS;
+      cells = new Array(total);
+      const frag = document.createDocumentFragment();
+      let idx = 0;
+      for (let r=0; r<ROWS; r++) {
+        for (let c=0; c<COLS; c++, idx++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.setAttribute('role','gridcell');
+          cell.tabIndex = 0;
+          cell.dataset.index = String(idx);
+          cell.dataset.r = String(r);
+          cell.dataset.c = String(c);
+          cell.title = `(${r}, ${c})`;
+          frag.appendChild(cell);
+          cells[idx] = cell;
+        }
+      }
+      gridEl.appendChild(frag);
+      const t1 = performance.now();
+      return (t1 - t0);
+    }
+
+    function precomputeAdjMeasured() {
+      const total = ROWS * COLS;
+      neighbors4 = new Array(total);
+      neighbors8 = new Array(total);
+
+      let t4_0 = performance.now();
+      for (let r=0; r<ROWS; r++) {
+        for (let c=0; c<COLS; c++) {
+          const idx = toIdx(r,c);
+          const n4 = [];
+          if (inBounds(r-1,c)) n4.push(toIdx(r-1,c));
+          if (inBounds(r+1,c)) n4.push(toIdx(r+1,c));
+          if (inBounds(r,c-1)) n4.push(toIdx(r,c-1));
+          if (inBounds(r,c+1)) n4.push(toIdx(r,c+1));
+          neighbors4[idx] = n4;
+        }
+      }
+      let t4_1 = performance.now();
+
+      let t8_0 = performance.now();
+      for (let r=0; r<ROWS; r++) {
+        for (let c=0; c<COLS; c++) {
+          const idx = toIdx(r,c);
+          const n8 = neighbors4[idx].slice();
+          if (inBounds(r-1,c-1)) n8.push(toIdx(r-1,c-1));
+          if (inBounds(r-1,c+1)) n8.push(toIdx(r-1,c+1));
+          if (inBounds(r+1,c-1)) n8.push(toIdx(r+1,c-1));
+          if (inBounds(r+1,c+1)) n8.push(toIdx(r+1,c+1));
+          neighbors8[idx] = n8;
+        }
+      }
+      let t8_1 = performance.now();
+
+      return { adj4: (t4_1 - t4_0), adj8: (t8_1 - t8_0) };
+    }
+
+    // Synthetic hover workload: randomly highlight N cells.
+    function randomHoversMeasured(N = 1000) {
+      const total = ROWS * COLS;
+      if (total === 0) return 0;
+      const t0 = performance.now();
+      for (let i=0; i<N; i++) {
+        const idx = (Math.random() * total) | 0;
+        applyHighlight(idx);
+      }
+      // Clear once at end (like pointerleave)
+      clearHighlight();
+      const t1 = performance.now();
+      return (t1 - t0);
+    }
+
+    // ---------- Event delegation ----------
+    gridEl.addEventListener('pointermove', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (!cell || !gridEl.contains(cell)) return;
+      applyHighlight(Number(cell.dataset.index));
+    }, { passive: true });
+
+    gridEl.addEventListener('pointerleave', () => {
+      clearHighlight();
+      statusEl.textContent = 'Hover a cell…';
+    });
+
+    gridEl.addEventListener('focusin', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (cell) applyHighlight(Number(cell.dataset.index));
+    });
+
+    gridEl.addEventListener('focusout', (e) => {
+      if (!gridEl.contains(e.relatedTarget)) {
+        clearHighlight();
+        statusEl.textContent = 'Hover a cell…';
+      }
+    });
+
+    gridEl.addEventListener('keydown', (e) => {
+      const active = document.activeElement;
+      if (!active || !active.classList.contains('cell')) return;
+      let r = Number(active.dataset.r);
+      let c = Number(active.dataset.c);
+      let handled = true;
+      switch (e.key) {
+        case 'ArrowUp':    r = Math.max(0, r - 1); break;
+        case 'ArrowDown':  r = Math.min(ROWS - 1, r + 1); break;
+        case 'ArrowLeft':  c = Math.max(0, c - 1); break;
+        case 'ArrowRight': c = Math.min(COLS - 1, c + 1); break;
+        default: handled = false;
+      }
+      if (handled) {
+        e.preventDefault();
+        cells[toIdx(r,c)].focus();
+      }
+    });
+
+    // ---------- UI wiring ----------
+    function rebuildGridAndAdjacency() {
+      clearHighlight();
+      const buildMs = buildGridMeasured();
+      const { adj4, adj8 } = precomputeAdjMeasured();
+      statusEl.textContent = `Grid ${ROWS}×${COLS} built in ${buildMs.toFixed(2)}ms; adj4 ${adj4.toFixed(2)}ms; adj8 ${adj8.toFixed(2)}ms.`;
+    }
+
+    rebuildBtn.addEventListener('click', () => {
+      const r = Math.max(1, Math.min(5000, Number(rowsInput.value) || 1));
+      const c = Math.max(1, Math.min(5000, Number(colsInput.value) || 1));
+      ROWS = r; COLS = c;
+      rebuildGridAndAdjacency();
+    });
+
+    benchBtn.addEventListener('click', async () => {
+      // Yield to paint so the rebuild (if you just changed inputs) is visible
+      await new Promise(requestAnimationFrame);
+
+      // Rebuild to ensure clean state for the benchmark size
+      const buildMs = buildGridMeasured();
+      const { adj4, adj8 } = precomputeAdjMeasured();
+
+      // Hover workload; keep it deterministic-ish by fixing N
+      const N = 1000;
+      const hoverMs = randomHoversMeasured(N);
+
+      const total = ROWS * COLS;
+      const perHoverUs = (hoverMs * 1000) / N;
+      const totalMs = buildMs + adj4 + adj8 + hoverMs;
+
+      appendResultRow({
+        config: `${ROWS}×${COLS}`,
+        cells: total,
+        build: buildMs,
+        adj4, adj8,
+        hover: hoverMs,
+        perHoverUs,
+        total: totalMs
+      });
+    });
+
+    clearTableBtn.addEventListener('click', () => {
+      resultsBody.innerHTML = '';
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const rows = [['Config','Cells','Build (ms)','Adj 4 (ms)','Adj 8 (ms)','Random Hovers x1000 (ms)','Per Hover (us)','Total (ms)']];
+      const trs = Array.from(resultsBody.querySelectorAll('tr'));
+      trs.forEach(tr => {
+        const tds = Array.from(tr.querySelectorAll('td')).map(td => td.textContent);
+        rows.push(tds);
+      });
+      const csv = rows.map(r => r.map(x => /[",\n]/.test(x) ? `"${x.replace(/"/g,'""')}"` : x).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'grid_benchmarks.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    function appendResultRow({config, cells, build, adj4, adj8, hover, perHoverUs, total}) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align:left">${config}</td>
+        <td>${cells}</td>
+        <td>${build.toFixed(2)}</td>
+        <td>${adj4.toFixed(2)}</td>
+        <td>${adj8.toFixed(2)}</td>
+        <td>${hover.toFixed(2)}</td>
+        <td>${perHoverUs.toFixed(2)}</td>
+        <td>${total.toFixed(2)}</td>
+      `;
+      resultsBody.appendChild(tr);
+    }
+
+    // ---------- First paint ----------
+    rebuildGridAndAdjacency();
+  }());
+  </script>
+</body>
+</html>
