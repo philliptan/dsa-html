@@ -529,43 +529,99 @@
     };
   }
 
-  // ===== NEW — Approach 5: CSS Overlay (single DOM write) =====
+  // ===== NEW — Approach 5: CSS Overlay (single DOM write, with ResizeObserver) =====
   function approachOverlayFactory({ container, rows, cols, diag }) {
     const name = 'Approach 5 — CSS Overlay (single DOM write)';
     const summaryLabel = 'CSSOverlay';
     const { grid, cells } = buildGrid(container, rows, cols);
 
+    // Overlay
     const overlay = document.createElement('div');
     overlay.className = 'overlay ' + (diag ? 'cheb' : 'cross');
     overlay.style.display = 'none';
     overlay.style.pointerEvents = 'none';
-
-    const cw = (cells[0]?.offsetWidth || 10);
-    const ch = (cells[0]?.offsetHeight || 20);
-    overlay.style.setProperty('--cw', cw + 'px');
-    overlay.style.setProperty('--ch', ch + 'px');
-
     grid.appendChild(overlay);
 
+    // Current measured cell size (px) and hovered index
+    let cw = 0, ch = 0;
+    let currentIdx = -1;
+
+    // Measure cell size and update overlay variables/position
+    function measureCellSize() {
+      const first = cells[0];
+      if (!first) return;
+      const newCw = first.offsetWidth;   // outline doesn't affect layout
+      const newCh = first.offsetHeight;
+      if (newCw === 0 || newCh === 0) {
+        // Grid might not be laid out yet; try again next frame.
+        requestAnimationFrame(measureCellSize);
+        return;
+      }
+      if (newCw !== cw || newCh !== ch) {
+        cw = newCw; ch = newCh;
+        overlay.style.setProperty('--cw', cw + 'px');
+        overlay.style.setProperty('--ch', ch + 'px');
+
+        // If something is highlighted, keep it aligned after resize
+        if (currentIdx !== -1) {
+          const r = (currentIdx / cols) | 0;
+          const c = currentIdx % cols;
+          overlay.style.transform = `translate(${c * cw}px, ${r * ch}px)`;
+        }
+      }
+    }
+
+    // Initial measurement (and retry if layout not ready)
+    measureCellSize();
+
+    // Observe size changes of the grid (and optionally the first cell)
+    let ro = null;
+    if ('ResizeObserver' in window) {
+      ro = new ResizeObserver(() => { measureCellSize(); });
+      ro.observe(grid);
+      // Observing the first cell makes it robust if only cells resize
+      if (cells[0]) ro.observe(cells[0]);
+    } else {
+      // Fallback for older browsers
+      window.addEventListener('resize', measureCellSize);
+    }
+
     function moveTo(idx){
-      const [r,c] = toRC(idx, cols);
+      currentIdx = idx;
+      const r = (idx / cols) | 0;
+      const c = idx % cols;
+      // Uses the latest cw/ch so overlay stays snapped
       overlay.style.transform = `translate(${c * cw}px, ${r * ch}px)`;
       overlay.style.display = 'block';
     }
-    function hide(){ overlay.style.display = 'none'; }
 
+    function hide(){
+      overlay.style.display = 'none';
+      currentIdx = -1;
+    }
+
+    // Interactive UX
     grid.addEventListener('pointermove', (e) => {
       const cell = e.target && e.target.closest('.cell');
       if (!cell || !grid.contains(cell)) return;
+      // Ensure we have a valid measurement before first move
+      if (cw === 0 || ch === 0) measureCellSize();
       moveTo(Number(cell.dataset.index));
     }, { passive: true });
+
     grid.addEventListener('pointerleave', () => hide());
+
+    // Cleanup observer when harness finalizes this approach
+    function disconnectObserver() {
+      if (ro) ro.disconnect();
+      else window.removeEventListener('resize', measureCellSize);
+    }
 
     return {
       name, summaryLabel, listeners: 2,
       transition(prev, next){ moveTo(next); },
       clear(){ hide(); },
-      finalize(){ hide(); }
+      finalize(){ hide(); disconnectObserver(); }
     };
   }
 
