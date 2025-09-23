@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>20×20 Grid – Hover + Adjacency Highlight</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --cols: 20;
+      --rows: 20;
+      --cell-w: 10px;   /* width  */
+      --cell-h: 20px;   /* height */
+      --cell-gap: 0px;
+      --color-base: #eef2f7;
+      --color-border: #d8dee9;
+      --color-hover: #ffd54f;     /* center cell */
+      --color-neighbor: #ffecb3;  /* adjacent cells */
+      --color-focus: #42a5f5;     /* keyboard focus ring */
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin: 24px;
+      color: #111;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), var(--cell-w));
+      grid-auto-rows: var(--cell-h);
+      gap: var(--cell-gap);
+      user-select: none;
+      border: 1px solid var(--color-border);
+      width: calc(var(--cols) * var(--cell-w));
+      /* Prevent accidental text selection / scrolling cost */
+      contain: content;
+      position: relative;
+    }
+
+    .cell {
+      box-sizing: border-box;
+      background: var(--color-base);
+      outline: 1px solid var(--color-border);
+      /* Make each cell focusable for keyboard navigation */
+      outline-offset: -1px;
+    }
+
+    .cell.is-hover {
+      background: var(--color-hover);
+    }
+    .cell.is-neighbor {
+      background: var(--color-neighbor);
+    }
+
+    /* Visible focus ring only when navigating by keyboard */
+    .cell:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px;
+    }
+
+    /* Tiny status readout */
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #444;
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      border: 1px solid #ccc;
+      border-bottom-color: #bbb;
+      background: #f9f9f9;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <label>
+      <input type="checkbox" id="diagToggle" />
+      Include diagonals (8-neighborhood)
+    </label>
+    <span class="status" id="status">Hover a cell…</span>
+  </div>
+
+  <div id="grid" class="grid" role="grid" aria-label="20 by 20 cells"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // --- Config ---
+      const ROWS = 20;
+      const COLS = 20;
+
+      // --- State ---
+      const gridEl = document.getElementById('grid');
+      const diagToggle = document.getElementById('diagToggle');
+      const statusEl = document.getElementById('status');
+
+      /** @type {HTMLDivElement[]} */
+      const cells = new Array(ROWS * COLS);
+
+      /** @type {number[][]} */
+      const neighbors4 = new Array(ROWS * COLS);
+      /** @type {number[][]} */
+      const neighbors8 = new Array(ROWS * COLS);
+
+      // Track last highlighted indices to unhighlight efficiently
+      /** @type {number[]} */
+      let lastHighlighted = [];
+      let lastIdx = -1;
+
+      // --- Build the grid once (DocumentFragment to minimize reflow) ---
+      {
+        const frag = document.createDocumentFragment();
+        let idx = 0;
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++, idx++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.setAttribute('role', 'gridcell');
+            cell.tabIndex = 0; // keyboard focusable
+            // Data for fast lookup (strings are fine; we won't parse every time)
+            cell.dataset.index = String(idx);
+            cell.dataset.r = String(r);
+            cell.dataset.c = String(c);
+            // Optional tooltip for debugging/demo
+            cell.title = `(${r}, ${c})`;
+            frag.appendChild(cell);
+            cells[idx] = cell;
+          }
+        }
+        gridEl.appendChild(frag);
+      }
+
+      // --- Precompute adjacency (both 4- and 8-neighborhood) ---
+      const inBounds = (r, c) => (r >= 0 && r < ROWS && c >= 0 && c < COLS);
+      const toIdx = (r, c) => (r * COLS + c);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const idx = toIdx(r, c);
+
+          // 4-neighborhood
+          const n4 = [];
+          if (inBounds(r - 1, c)) n4.push(toIdx(r - 1, c)); // up
+          if (inBounds(r + 1, c)) n4.push(toIdx(r + 1, c)); // down
+          if (inBounds(r, c - 1)) n4.push(toIdx(r, c - 1)); // left
+          if (inBounds(r, c + 1)) n4.push(toIdx(r, c + 1)); // right
+          neighbors4[idx] = n4;
+
+          // 8-neighborhood = 4-neighborhood + diagonals
+          const n8 = n4.slice();
+          // diagonals
+          if (inBounds(r - 1, c - 1)) n8.push(toIdx(r - 1, c - 1));
+          if (inBounds(r - 1, c + 1)) n8.push(toIdx(r - 1, c + 1));
+          if (inBounds(r + 1, c - 1)) n8.push(toIdx(r + 1, c - 1));
+          if (inBounds(r + 1, c + 1)) n8.push(toIdx(r + 1, c + 1));
+          neighbors8[idx] = n8;
+        }
+      }
+
+      // --- Utility: clear last highlight ---
+      function clearHighlight() {
+        if (lastHighlighted.length) {
+          for (let i = 0; i < lastHighlighted.length; i++) {
+            const el = cells[lastHighlighted[i]];
+            if (!el) continue;
+            el.classList.remove('is-hover', 'is-neighbor');
+          }
+          lastHighlighted.length = 0;
+        }
+        lastIdx = -1;
+      }
+
+      // --- Highlight target index + neighbors ---
+      function applyHighlight(idx) {
+        if (idx === lastIdx) return; // no-op if same cell
+        clearHighlight();
+
+        const center = cells[idx];
+        if (!center) return;
+
+        const useDiag = diagToggle.checked;
+        const neigh = useDiag ? neighbors8[idx] : neighbors4[idx];
+
+        // Center first
+        center.classList.add('is-hover');
+
+        // Then neighbors
+        for (let i = 0; i < neigh.length; i++) {
+          cells[neigh[i]].classList.add('is-neighbor');
+        }
+
+        // Store what we changed to clear in O(k)
+        lastHighlighted = [idx, ...neigh];
+        lastIdx = idx;
+
+        // Status
+        statusEl.textContent = `Hovering index ${idx}  →  cell (${center.dataset.r}, ${center.dataset.c}) with ${neigh.length} neighbor(s)`;
+      }
+
+      // --- Event delegation (pointer is modern & covers mouse/touch/pen) ---
+      // Use pointermove so we get continuous updates across cells without per-cell listeners
+      gridEl.addEventListener('pointermove', (e) => {
+        const cell = (e.target && (e.target).closest('.cell'));
+        if (!cell || !gridEl.contains(cell)) return; // moved over gaps (shouldn't happen)
+        const idx = Number(cell.dataset.index);
+        applyHighlight(idx);
+      }, { passive: true });
+
+      // Clear on leaving the grid to avoid "stuck" highlight
+      gridEl.addEventListener('pointerleave', () => {
+        clearHighlight();
+        statusEl.textContent = 'Hover a cell…';
+      });
+
+      // --- Keyboard accessibility: highlight on focus, clear on blur ---
+      gridEl.addEventListener('focusin', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        applyHighlight(Number(cell.dataset.index));
+      });
+      gridEl.addEventListener('focusout', (e) => {
+        // If focus leaves the grid entirely, clear
+        if (!gridEl.contains(e.relatedTarget)) {
+          clearHighlight();
+          statusEl.textContent = 'Hover a cell…';
+        }
+      });
+
+      // Optional: arrow keys move focus between cells (nice UX)
+      gridEl.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        if (!active || !active.classList.contains('cell')) return;
+        let r = Number(active.dataset.r);
+        let c = Number(active.dataset.c);
+        let handled = true;
+        switch (e.key) {
+          case 'ArrowUp':    r = Math.max(0, r - 1); break;
+          case 'ArrowDown':  r = Math.min(ROWS - 1, r + 1); break;
+          case 'ArrowLeft':  c = Math.max(0, c - 1); break;
+          case 'ArrowRight': c = Math.min(COLS - 1, c + 1); break;
+          default: handled = false;
+        }
+        if (handled) {
+          e.preventDefault();
+          cells[r * COLS + c].focus();
+        }
+      });
+
+      // Initial ARIA sizing (purely informational)
+      gridEl.setAttribute('aria-rowcount', String(ROWS));
+      gridEl.setAttribute('aria-colcount', String(COLS));
+    }());
+  </script>
+</body>
+</html>
