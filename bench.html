@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Grid Adjacency — DRY Benchmark Harness</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --cell-w: 10px;
+    --cell-h: 20px;
+    --gap: 0px;
+    --base:#eef2f7; --border:#d8dee9; --hover:#ffd54f; --neighbor:#ffecb3;
+  }
+  body{ font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:20px; color:#111;}
+  .controls{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:10px;}
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(var(--cols), var(--cell-w));
+    grid-auto-rows: var(--cell-h);
+    gap: var(--gap);
+    width: calc(var(--cols) * var(--cell-w));
+    border:1px solid var(--border);
+    user-select:none;
+    contain: content;
+  }
+  .cell{ box-sizing:border-box; background:var(--base); outline:1px solid var(--border); }
+  .cell.is-hover{ background: var(--hover); }
+  .cell.is-neighbor{ background: var(--neighbor); }
+  .log{ font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre-wrap;
+        background:#f8f9fb; border:1px solid #e5e7eb; padding:10px; border-radius:6px; max-width: 880px;}
+  fieldset{ border:1px solid #e5e7eb; border-radius:6px; padding:10px;}
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  label.inline { display:inline-flex; align-items:center; gap:6px; }
+  button{ padding:6px 10px; }
+  #stage{ margin-top:10px; }
+</style>
+</head>
+<body>
+  <h2>Grid Adjacency — DRY Benchmark Harness</h2>
+
+  <fieldset>
+    <legend>Settings</legend>
+    <div class="row">
+      <label>Approach
+        <select id="approach">
+          <option value="naive">1) Naive (per-cell listeners)</option>
+          <option value="delegation">2) Delegation + Precomputed</option>
+        </select>
+      </label>
+      <label>Rows <input id="rows" type="number" min="1" max="500" value="40" style="width:5em"></label>
+      <label>Cols <input id="cols" type="number" min="1" max="500" value="40" style="width:5em"></label>
+      <label class="inline"><input type="checkbox" id="diag"> Include diagonals (8-neighbors)</label>
+      <label>Passes <input id="passes" type="number" min="1" max="50" value="5" style="width:4em"></label>
+      <label>Repeats <input id="repeats" type="number" min="1" max="200" value="25" style="width:4em"></label>
+      <button id="run">Run benchmark</button>
+      <button id="runBoth">Run both approaches</button>
+      <button id="clear">Clear highlight</button>
+    </div>
+  </fieldset>
+
+  <div id="stage"></div>
+
+  <h3>Benchmark log</h3>
+  <div id="log" class="log"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ===== Shared Utils (DRY) =====
+  const logEl = document.getElementById('log');
+  const stage = document.getElementById('stage');
+  const $ = (id) => document.getElementById(id);
+  const log = (s='') => logEl.textContent += s + '\n';
+  const nextFrame = () => new Promise(requestAnimationFrame);
+  const median = (arr) => {
+    const s = arr.slice().sort((a,b)=>a-b);
+    const m = (s.length-1)/2;
+    return s.length % 2 ? s[m] : (s[m] + s[m+1]) / 2;
+  };
+  const toIdx = (r,c,cols) => r * cols + c;
+  const toRC  = (idx,cols) => [ (idx/cols)|0, idx%cols ];
+  const inBounds = (r,c,rows,cols) => r>=0 && r<rows && c>=0 && c<cols;
+
+  function* serpentineIndices(rows, cols) {
+    for (let r=0; r<rows; r++) {
+      if ((r & 1) === 0) { for (let c=0; c<cols; c++) yield toIdx(r,c,cols); }
+      else { for (let c=cols-1; c>=0; c--) yield toIdx(r,c,cols); }
+    }
+  }
+
+  function buildGrid(container, rows, cols) {
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.style.setProperty('--rows', String(rows));
+    grid.style.setProperty('--cols', String(cols));
+
+    const cells = new Array(rows*cols);
+    const frag = document.createDocumentFragment();
+    let idx = 0;
+    for (let r=0; r<rows; r++) {
+      for (let c=0; c<cols; c++, idx++) {
+        const el = document.createElement('div');
+        el.className = 'cell';
+        el.dataset.index = String(idx);
+        el.dataset.r = String(r);
+        el.dataset.c = String(c);
+        el.title = `(${r},${c})`;
+        frag.appendChild(el);
+        cells[idx] = el;
+      }
+    }
+    grid.appendChild(frag);
+    container.appendChild(grid);
+    return { grid, cells };
+  }
+
+  // ===== DRY Benchmark Harness =====
+  async function runBenchmark(factory, cfg) {
+    // factory: () => approach instance (with init/build)
+    // cfg: {rows, cols, diag, passes, repeats}
+    stage.innerHTML = ''; // fresh mount per run
+    const {rows, cols, diag, passes, repeats} = cfg;
+
+    const t0 = performance.now();
+    const approach = factory({ container: stage, rows, cols, diag });
+    const coldStartMs = performance.now() - t0;
+
+    // augment with common fields
+    const N = rows * cols;
+    log(`--- ${approach.name} ---`);
+    log(`Cold start: ${coldStartMs.toFixed(2)} ms`);
+    log(`Neighbors mode: ${diag ? '8-neighbors' : '4-neighbors'}`);
+    log(`Simulating pointer moves: ${repeats} × ${N} cells\n`);
+
+    const results = [];
+    for (let p=0; p<passes; p++) {
+      approach.clear();
+      const t1 = performance.now();
+
+      let prev = -1;
+      for (let r=0; r<repeats; r++) {
+        for (const idx of serpentineIndices(rows, cols)) {
+          approach.transition(prev, idx); // DRY transition hook
+          prev = idx;
+        }
+      }
+      if (typeof approach.finalize === 'function') {
+        approach.finalize(prev);
+      } else {
+        approach.clear();
+      }
+
+      const t2 = performance.now();
+      const totalMoves = repeats * N;
+      const totalMs = t2 - t1;
+      const perHoverMs = totalMs / totalMoves;
+      const hoversPerSec = 1000 / perHoverMs;
+
+      results.push({ totalMs, perHoverMs, hoversPerSec });
+      log(`Pass ${p+1}/${passes}: total ${totalMs.toFixed(1)} ms | avg ${perHoverMs.toFixed(4)} ms/hover | ${hoversPerSec.toFixed(1)} hovers/s`);
+      await nextFrame();
+    }
+
+    const perHoverList = results.map(r => r.perHoverMs);
+    const totalList    = results.map(r => r.totalMs);
+    const hpsList      = results.map(r => r.hoversPerSec);
+
+    const summary = {
+      approach: approach.summaryLabel,
+      neighbors: diag ? 8 : 4,
+      coldStartMs: Number(coldStartMs.toFixed(2)),
+      passes, repeats,
+      cells: N,
+      listeners: approach.listeners,
+      perHoverMs_avg: Number((perHoverList.reduce((a,b)=>a+b,0)/perHoverList.length).toFixed(5)),
+      perHoverMs_median: Number(median(perHoverList).toFixed(5)),
+      hoversPerSec_median: Number(median(hpsList).toFixed(1)),
+      totalMs_median: Number(median(totalList).toFixed(1))
+    };
+
+    log(`\nSummary: ${JSON.stringify(summary, null, 2)}`);
+    window.__BENCH_LAST__ = summary;
+    return summary;
+  }
+
+  // ===== Approach 1: Naive (per-cell listeners, recompute neighbors) =====
+  function approachNaiveFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 1 — Naive (per-cell listeners)';
+    const summaryLabel = 'Naive';
+    const N = rows * cols;
+    const { grid, cells } = buildGrid(container, rows, cols);
+
+    // attach listeners (counts toward cold start)
+    function getNeighbors(r, c) {
+      const out = [];
+      // 4-neighbors
+      if (inBounds(r-1,c,rows,cols)) out.push(toIdx(r-1,c,cols));
+      if (inBounds(r+1,c,rows,cols)) out.push(toIdx(r+1,c,cols));
+      if (inBounds(r,c-1,rows,cols)) out.push(toIdx(r,c-1,cols));
+      if (inBounds(r,c+1,rows,cols)) out.push(toIdx(r,c+1,cols));
+      // diagonals
+      if (diag) {
+        if (inBounds(r-1,c-1,rows,cols)) out.push(toIdx(r-1,c-1,cols));
+        if (inBounds(r-1,c+1,rows,cols)) out.push(toIdx(r-1,c+1,cols));
+        if (inBounds(r+1,c-1,rows,cols)) out.push(toIdx(r+1,c-1,cols));
+        if (inBounds(r+1,c+1,rows,cols)) out.push(toIdx(r+1,c+1,cols));
+      }
+      return out;
+    }
+
+    let lastIdx = -1;
+    function onEnter(e){ const idx = Number(e.currentTarget.dataset.index); enter(idx); lastIdx = idx; }
+    function onLeave(e){ const idx = Number(e.currentTarget.dataset.index); leave(idx); lastIdx = -1; }
+
+    for (let i=0; i<N; i++){
+      cells[i].addEventListener('mouseenter', onEnter);
+      cells[i].addEventListener('mouseleave', onLeave);
+    }
+
+    function enter(idx){
+      const [r,c] = toRC(idx, cols);
+      const neigh = getNeighbors(r,c);
+      cells[idx].classList.add('is-hover');
+      for (let i=0; i<neigh.length; i++) cells[neigh[i]].classList.add('is-neighbor');
+    }
+    function leave(idx){
+      const [r,c] = toRC(idx, cols);
+      const neigh = getNeighbors(r,c);
+      cells[idx].classList.remove('is-hover');
+      for (let i=0; i<neigh.length; i++) cells[neigh[i]].classList.remove('is-neighbor');
+    }
+
+    return {
+      name, summaryLabel, listeners: N*2,
+      transition(prev, next){
+        if (prev !== -1) leave(prev);
+        enter(next);
+        lastIdx = next;
+      },
+      clear(){
+        if (lastIdx !== -1) leave(lastIdx);
+        lastIdx = -1;
+      },
+      finalize(prev){
+        if (prev !== -1) leave(prev); // simulate final mouseleave
+        lastIdx = -1;
+      }
+    };
+  }
+
+  // ===== Approach 2: Delegation + Precomputed =====
+  function approachDelegationFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 2 — Delegation + Precomputed';
+    const summaryLabel = 'Delegation+Precomputed';
+    const N = rows * cols;
+    const { grid, cells } = buildGrid(container, rows, cols);
+
+    // precompute neighbors4/8 (counts toward cold start)
+    /** @type {number[][]} */ const neighbors4 = new Array(N);
+    /** @type {number[][]} */ const neighbors8 = new Array(N);
+    for (let r=0; r<rows; r++){
+      for (let c=0; c<cols; c++){
+        const idx = toIdx(r,c,cols);
+        const n4 = [];
+        if (inBounds(r-1,c,rows,cols)) n4.push(toIdx(r-1,c,cols));
+        if (inBounds(r+1,c,rows,cols)) n4.push(toIdx(r+1,c,cols));
+        if (inBounds(r,c-1,rows,cols)) n4.push(toIdx(r,c-1,cols));
+        if (inBounds(r,c+1,rows,cols)) n4.push(toIdx(r,c+1,cols));
+        neighbors4[idx] = n4;
+
+        const n8 = n4.slice();
+        if (inBounds(r-1,c-1,rows,cols)) n8.push(toIdx(r-1,c-1,cols));
+        if (inBounds(r-1,c+1,rows,cols)) n8.push(toIdx(r-1,c+1,cols));
+        if (inBounds(r+1,c-1,rows,cols)) n8.push(toIdx(r+1,c-1,cols));
+        if (inBounds(r+1,c+1,rows,cols)) n8.push(toIdx(r+1,c+1,cols));
+        neighbors8[idx] = n8;
+      }
+    }
+
+    // delegation (interactive UX if you hover)
+    grid.addEventListener('pointermove', (e) => {
+      const cell = e.target && e.target.closest('.cell');
+      if (!cell || !grid.contains(cell)) return;
+      highlight(Number(cell.dataset.index));
+    }, { passive: true });
+    grid.addEventListener('pointerleave', () => clear());
+
+    let lastIdx = -1;
+    /** @type {number[]} */ let lastSet = [];
+
+    function clear(){
+      if (!lastSet.length) { lastIdx = -1; return; }
+      for (let i=0; i<lastSet.length; i++){
+        cells[lastSet[i]].classList.remove('is-hover','is-neighbor');
+      }
+      lastSet.length = 0;
+      lastIdx = -1;
+    }
+
+    function highlight(idx){
+      if (idx === lastIdx) return;
+      if (lastSet.length){
+        for (let i=0; i<lastSet.length; i++){
+          cells[lastSet[i]].classList.remove('is-hover','is-neighbor');
+        }
+      }
+      const neigh = (diag ? neighbors8[idx] : neighbors4[idx]);
+      cells[idx].classList.add('is-hover');
+      for (let i=0; i<neigh.length; i++) cells[neigh[i]].classList.add('is-neighbor');
+      lastSet = [idx, ...neigh];
+      lastIdx = idx;
+    }
+
+    return {
+      name, summaryLabel, listeners: 2,
+      transition(prev, next){ highlight(next); },
+      clear,
+      finalize(){ clear(); }
+    };
+  }
+
+  // ===== Wire up UI =====
+  const approachSel = $('approach');
+  const rowsInp = $('rows');
+  const colsInp = $('cols');
+  const diagInp = $('diag');
+  const passesInp = $('passes');
+  const repeatsInp = $('repeats');
+
+  $('run').addEventListener('click', async () => {
+    logEl.textContent = '';
+    const cfg = {
+      rows: Number(rowsInp.value),
+      cols: Number(colsInp.value),
+      diag: diagInp.checked,
+      passes: Number(passesInp.value),
+      repeats: Number(repeatsInp.value)
+    };
+    const factory = approachSel.value === 'naive' ? approachNaiveFactory : approachDelegationFactory;
+    await runBenchmark(factory, cfg);
+  });
+
+  $('runBoth').addEventListener('click', async () => {
+    logEl.textContent = '';
+    const cfg = {
+      rows: Number(rowsInp.value),
+      cols: Number(colsInp.value),
+      diag: diagInp.checked,
+      passes: Number(passesInp.value),
+      repeats: Number(repeatsInp.value)
+    };
+    await runBenchmark(approachNaiveFactory, cfg);
+    log('\n');
+    await runBenchmark(approachDelegationFactory, cfg);
+  });
+
+  $('clear').addEventListener('click', () => { stage.innerHTML = ''; });
+
+})();
+</script>
+</body>
+</html>

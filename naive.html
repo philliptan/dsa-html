@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root {
-    --cols: 20;
-    --rows: 20;
+    --cols: 40;
+    --rows: 40;
     --cell-w: 10px;   /* width  */
     --cell-h: 20px;   /* height */
     --gap: 0px;
@@ -62,7 +62,7 @@
   'use strict';
 
   // ---------- Constants ----------
-  const ROWS = 20, COLS = 20;
+  const ROWS = 40, COLS = 40;
   const N = ROWS * COLS;
 
   // ---------- DOM ----------
@@ -186,7 +186,7 @@
     log(`--- Approach 1 (Naive) ---`);
     log(`Cold start (build grid + ${eventsCount} listeners): ${coldStartMs.toFixed(2)} ms`);
     log(`Neighbors mode: ${includeDiag ? '8-neighbors' : '4-neighbors'}`);
-    log(`Simulating pointer moves: ${repeats} × 400 cells × (leave+enter)\n`);
+    log(`Simulating pointer moves: ${repeats} × ${ROWS*COLS} cells × (leave+enter)\n`);
 
     const results = [];
     for (let p = 0; p < passes; p++) {
