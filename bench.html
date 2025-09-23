@@ -22,39 +22,35 @@
     border:1px solid var(--border);
     user-select:none;
     contain: content;
-    position: relative;          /* for overlay positioning */
-    overflow: hidden;            /* clip overlay shadows at edges */
+    position: relative;
+    overflow: hidden;
   }
   .cell{ box-sizing:border-box; background:var(--base); outline:1px solid var(--border); }
   .cell.is-hover{ background: var(--hover); }
   .cell.is-neighbor{ background: var(--neighbor); }
 
-  /* CSS Overlay highlight (Approach 5) */
+  /* CSS Overlay (Approach 5) */
   .overlay {
     position: absolute;
     width: var(--cw);
     height: var(--ch);
     background: var(--hover);
     pointer-events: none;
-    will-change: transform;       /* single GPU-friendly write per move */
+    will-change: transform;
   }
-  /* 4-neighborhood (cross) */
   .overlay.cross {
     box-shadow:
-      /* up, down, left, right */
       0 calc(-1 * var(--ch)) 0 0 var(--neighbor),
       0 var(--ch)            0 0 var(--neighbor),
       calc(-1 * var(--cw)) 0  0 0 var(--neighbor),
       var(--cw) 0            0 0 var(--neighbor);
   }
-  /* 8-neighborhood (Chebyshev) = cross + corners */
   .overlay.cheb {
     box-shadow:
       0 calc(-1 * var(--ch)) 0 0 var(--neighbor),
       0 var(--ch)            0 0 var(--neighbor),
       calc(-1 * var(--cw)) 0  0 0 var(--neighbor),
       var(--cw) 0            0 0 var(--neighbor),
-      /* diagonals */
       calc(-1 * var(--cw)) calc(-1 * var(--ch)) 0 0 var(--neighbor),
       var(--cw)            calc(-1 * var(--ch)) 0 0 var(--neighbor),
       calc(-1 * var(--cw)) var(--ch)            0 0 var(--neighbor),
@@ -83,6 +79,7 @@
           <option value="diff">3) Delegation + Precomputed + Diff</option>
           <option value="bitboard">4) Bitboard (BigInt) + Diff</option>
           <option value="overlay">5) CSS Overlay (single DOM write)</option>
+          <option value="canvas2d">6) Canvas 2D (single draw)</option>
         </select>
       </label>
       <label>Rows <input id="rows" type="number" min="1" max="500" value="40" style="width:5em"></label>
@@ -155,7 +152,7 @@
 
   // ===== DRY Benchmark Harness =====
   async function runBenchmark(factory, cfg) {
-    stage.innerHTML = ''; // fresh mount per run
+    stage.innerHTML = '';
     const {rows, cols, diag, passes, repeats} = cfg;
 
     const t0 = performance.now();
@@ -176,7 +173,7 @@
       let prev = -1;
       for (let r=0; r<repeats; r++) {
         for (const idx of serpentineIndices(rows, cols)) {
-          approach.transition(prev, idx); // DRY transition hook
+          approach.transition(prev, idx);
           prev = idx;
         }
       }
@@ -219,7 +216,7 @@
     return summary;
   }
 
-  // ===== Approach 1: Naive (per-cell listeners, recompute neighbors) =====
+  // ===== Approach 1: Naive (per-cell listeners) =====
   function approachNaiveFactory({ container, rows, cols, diag }) {
     const name = 'Approach 1 — Naive (per-cell listeners)';
     const summaryLabel = 'Naive';
@@ -350,7 +347,7 @@
     };
   }
 
-  // ===== Approach 3: Delegation + Precomputed + Differential Update =====
+  // ===== Approach 3: Delegation + Precomputed + Diff =====
   function approachDiffFactory({ container, rows, cols, diag }) {
     const name = 'Approach 3 — Delegation + Precomputed + Diff';
     const summaryLabel = 'Delegation+Precomputed+Diff';
@@ -442,7 +439,7 @@
     const COLS = BigInt(cols);
     const FULL = (one << BigInt(N)) - one;
 
-    let leftEdge = BIG0, rightEdge = BIG0, topRow = BIG0, bottomRow = BIG0;
+    let leftEdge = 0n, rightEdge = 0n, topRow = 0n, bottomRow = 0n;
     for (let r = 0; r < rows; r++) {
       leftEdge   |= (one << BigInt(r*cols + 0));
       rightEdge  |= (one << BigInt(r*cols + (cols-1)));
@@ -467,10 +464,10 @@
       mask |= shr(m & notLeft, 1);             // left
       mask |= shl(m & notRight, 1);            // right
       if (diag) {
-        mask |= shr(m & notTop & notLeft,  COLS + 1n); // up-left
-        mask |= shr(m & notTop & notRight, COLS - 1n); // up-right
-        mask |= shl(m & notBottom & notLeft,  COLS - 1n); // down-left
-        mask |= shl(m & notBottom & notRight, COLS + 1n); // down-right
+        mask |= shr(m & notTop & notLeft,  COLS + 1n);
+        mask |= shr(m & notTop & notRight, COLS - 1n);
+        mask |= shl(m & notBottom & notLeft,  COLS - 1n);
+        mask |= shl(m & notBottom & notRight, COLS + 1n);
       }
       return mask;
     }
@@ -478,12 +475,12 @@
     function forEachSetBit(mask, cb) {
       let base = 0;
       while (mask !== 0n) {
-        let x = Number(mask & 0xFFFFFFFFn) >>> 0; // unsigned 32-bit chunk
+        let x = Number(mask & 0xFFFFFFFFn) >>> 0;
         while (x) {
-          const lsb = x & -x;               // isolate lowest set bit
-          const bit = 31 - Math.clz32(lsb); // 0..31
+          const lsb = x & -x;
+          const bit = 31 - Math.clz32(lsb);
           cb(base + bit);
-          x ^= lsb;                         // clear
+          x ^= lsb;
         }
         mask >>= 32n;
         base += 32;
@@ -532,40 +529,36 @@
     };
   }
 
-  // ===== NEW — Approach 5: CSS Overlay (single DOM write per move) =====
+  // ===== NEW — Approach 5: CSS Overlay (single DOM write) =====
   function approachOverlayFactory({ container, rows, cols, diag }) {
     const name = 'Approach 5 — CSS Overlay (single DOM write)';
     const summaryLabel = 'CSSOverlay';
     const { grid, cells } = buildGrid(container, rows, cols);
 
-    // Create overlay once
     const overlay = document.createElement('div');
     overlay.className = 'overlay ' + (diag ? 'cheb' : 'cross');
     overlay.style.display = 'none';
     overlay.style.pointerEvents = 'none';
 
-    // Measure cell size to drive offsets (robust even if CSS vars change)
-    const cw = (cells[0]?.offsetWidth || 10) + 'px';
-    const ch = (cells[0]?.offsetHeight || 20) + 'px';
-    overlay.style.setProperty('--cw', cw);
-    overlay.style.setProperty('--ch', ch);
+    const cw = (cells[0]?.offsetWidth || 10);
+    const ch = (cells[0]?.offsetHeight || 20);
+    overlay.style.setProperty('--cw', cw + 'px');
+    overlay.style.setProperty('--ch', ch + 'px');
 
     grid.appendChild(overlay);
 
     function moveTo(idx){
       const [r,c] = toRC(idx, cols);
-      overlay.style.transform = `translate(${c * parseFloat(cw)}px, ${r * parseFloat(ch)}px)`;
+      overlay.style.transform = `translate(${c * cw}px, ${r * ch}px)`;
       overlay.style.display = 'block';
     }
     function hide(){ overlay.style.display = 'none'; }
 
-    // Interactive UX
     grid.addEventListener('pointermove', (e) => {
       const cell = e.target && e.target.closest('.cell');
       if (!cell || !grid.contains(cell)) return;
       moveTo(Number(cell.dataset.index));
     }, { passive: true });
-
     grid.addEventListener('pointerleave', () => hide());
 
     return {
@@ -573,6 +566,151 @@
       transition(prev, next){ moveTo(next); },
       clear(){ hide(); },
       finalize(){ hide(); }
+    };
+  }
+
+  // ===== NEW — Approach 6: Canvas 2D (single draw per move) =====
+  function approachCanvas2DFactory({ container, rows, cols, diag }) {
+    const name = 'Approach 6 — Canvas 2D (single draw)';
+    const summaryLabel = 'Canvas2D';
+    // We do NOT create 1600 divs. We draw everything on canvas for max throughput.
+
+    // Read CSS vars for colors and cell size
+    const root = getComputedStyle(document.documentElement);
+    const colorBase = root.getPropertyValue('--base').trim() || '#eef2f7';
+    const colorBorder = root.getPropertyValue('--border').trim() || '#d8dee9';
+    const colorHover = root.getPropertyValue('--hover').trim() || '#ffd54f';
+    const colorNeighbor = root.getPropertyValue('--neighbor').trim() || '#ffecb3';
+
+    // Try to read cell size from CSS vars; fallback to defaults
+    const cw = parseFloat(root.getPropertyValue('--cell-w')) || 10;
+    const ch = parseFloat(root.getPropertyValue('--cell-h')) || 20;
+    const W = cols * cw;
+    const H = rows * ch;
+
+    // Wrapper sized like the grid for consistency
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.style.setProperty('--rows', String(rows));
+    grid.style.setProperty('--cols', String(cols));
+    grid.style.position = 'relative';
+    grid.style.display = 'block'; // we don't populate with cells
+    container.appendChild(grid);
+
+    // Canvas + DPR setup
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    grid.appendChild(canvas);
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // logical units = CSS px
+
+    // Pre-render static background (grid fill + lines) to an offscreen canvas
+    const bg = document.createElement('canvas');
+    bg.width = canvas.width; bg.height = canvas.height;
+    const bgctx = bg.getContext('2d', { alpha: false });
+    bgctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Base fill
+    bgctx.fillStyle = colorBase;
+    bgctx.fillRect(0, 0, W, H);
+
+    // Grid lines
+    bgctx.strokeStyle = colorBorder;
+    bgctx.lineWidth = 1;
+    // crisp lines at 0.5 offset in CSS pixels
+    bgctx.beginPath();
+    for (let r = 0; r <= rows; r++) {
+      const y = Math.round(r * ch) + 0.5;
+      bgctx.moveTo(0, y);
+      bgctx.lineTo(W, y);
+    }
+    for (let c = 0; c <= cols; c++) {
+      const x = Math.round(c * cw) + 0.5;
+      bgctx.moveTo(x, 0);
+      bgctx.lineTo(x, H);
+    }
+    bgctx.stroke();
+
+    // Neighbor precompute (like Approach 2)
+    const N = rows * cols;
+    /** @type {number[][]} */ const neighbors4 = new Array(N);
+    /** @type {number[][]} */ const neighbors8 = new Array(N);
+    const toIndex = (r,c) => r * cols + c;
+    const inB = (r,c) => r>=0 && r<rows && c>=0 && c<cols;
+    for (let r=0; r<rows; r++) {
+      for (let c=0; c<cols; c++) {
+        const idx = toIndex(r,c);
+        const n4 = [];
+        if (inB(r-1,c)) n4.push(toIndex(r-1,c));
+        if (inB(r+1,c)) n4.push(toIndex(r+1,c));
+        if (inB(r,c-1)) n4.push(toIndex(r,c-1));
+        if (inB(r,c+1)) n4.push(toIndex(r,c+1));
+        neighbors4[idx] = n4;
+
+        const n8 = n4.slice();
+        if (inB(r-1,c-1)) n8.push(toIndex(r-1,c-1));
+        if (inB(r-1,c+1)) n8.push(toIndex(r-1,c+1));
+        if (inB(r+1,c-1)) n8.push(toIndex(r+1,c-1));
+        if (inB(r+1,c+1)) n8.push(toIndex(r+1,c+1));
+        neighbors8[idx] = n8;
+      }
+    }
+
+    function drawHighlight(idx) {
+      // blit BG
+      ctx.drawImage(bg, 0, 0, bg.width / dpr, bg.height / dpr);
+      // neighbors
+      const neigh = (diag ? neighbors8[idx] : neighbors4[idx]);
+      ctx.fillStyle = colorNeighbor;
+      for (let i=0; i<neigh.length; i++) {
+        const n = neigh[i];
+        const nr = (n / cols) | 0;
+        const nc = n % cols;
+        ctx.fillRect(nc * cw, nr * ch, cw, ch);
+      }
+      // center
+      const r = (idx / cols) | 0, c = idx % cols;
+      ctx.fillStyle = colorHover;
+      ctx.fillRect(c * cw, r * ch, cw, ch);
+    }
+
+    function clientToIndex(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const c = Math.floor(x / cw);
+      const r = Math.floor(y / ch);
+      if (!inB(r,c)) return -1;
+      return r * cols + c;
+    }
+
+    // Interactive events
+    let lastIdx = -1;
+    canvas.addEventListener('pointermove', (e) => {
+      const idx = clientToIndex(e);
+      if (idx === -1 || idx === lastIdx) return;
+      drawHighlight(idx);
+      lastIdx = idx;
+    }, { passive: true });
+
+    canvas.addEventListener('pointerleave', () => {
+      // restore background only
+      ctx.drawImage(bg, 0, 0, bg.width / dpr, bg.height / dpr);
+      lastIdx = -1;
+    });
+
+    // Initial paint
+    ctx.drawImage(bg, 0, 0, bg.width / dpr, bg.height / dpr);
+
+    return {
+      name, summaryLabel, listeners: 2,
+      transition(prev, next){ drawHighlight(next); },
+      clear(){ ctx.drawImage(bg, 0, 0, bg.width / dpr, bg.height / dpr); lastIdx = -1; },
+      finalize(){ ctx.drawImage(bg, 0, 0, bg.width / dpr, bg.height / dpr); lastIdx = -1; }
     };
   }
 
@@ -589,7 +727,8 @@
     delegation: approachDelegationFactory,
     diff: approachDiffFactory,
     bitboard: approachBitboardFactory,
-    overlay: approachOverlayFactory
+    overlay: approachOverlayFactory,
+    canvas2d: approachCanvas2DFactory,
   };
 
   $('run').addEventListener('click', async () => {
@@ -613,7 +752,7 @@
       passes: Number(passesInp.value),
       repeats: Number(repeatsInp.value)
     };
-    for (const key of ['naive','delegation','diff','bitboard','overlay']) {
+    for (const key of ['naive','delegation','diff','bitboard','overlay','canvas2d']) {
       await runBenchmark(factories[key], cfg);
       log('\n');
     }
