@@ -1,0 +1,67 @@
+<!DOCTYPE>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design System</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="hg.css" />
+  </head>
+  <!-- ======================= -->
+<!--  Holy Grail Page Markup -->
+<!-- ======================= -->
+<body>
+  <header class="header p-4 bg-surface border-bottom">
+    <div class="container flex justify-between items-center">
+      <h1 class="text-lg font-bold text-primary">Modern UI</h1>
+      <nav class="flex gap-2">
+        <a href="#" class="text-text hover:text-accent">Home</a>
+        <a href="#" class="text-text hover:text-accent">Docs</a>
+        <a href="#" class="text-text hover:text-accent">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar-left p-4 bg-surface border-right">
+      <h3 class="text-sm font-medium mb-2">Navigation</h3>
+      <ul class="text-sm">
+        <li><a href="#" class="text-text hover:text-accent">Dashboard</a></li>
+        <li><a href="#" class="text-text hover:text-accent">Projects</a></li>
+        <li><a href="#" class="text-text hover:text-accent">Reports</a></li>
+      </ul>
+    </aside>
+
+    <main class="main p-4">
+      <h2 class="text-fluid-lg font-bold mb-4">Main Content</h2>
+      <p class="mb-4">
+        This area expands to fill the remaining space. It’s driven by OKLCH tokens,
+        fully responsive, and inherits your theming system.
+      </p>
+
+      <div class="card mb-4">
+        <h3 class="font-medium mb-2">Card Example</h3>
+        <p>Use this space for articles, dashboards, or documentation sections.</p>
+      </div>
+    </main>
+
+    <aside class="sidebar-right p-4 bg-surface border-left">
+      <h3 class="text-sm font-medium mb-2">Updates</h3>
+      <p class="text-sm">Sidebar content or ads go here.</p>
+    </aside>
+  </div>
+
+  <footer class="footer p-4 bg-surface border-top text-center text-sm">
+    © 2025 Modern UI System. All rights reserved.
+        <!-- Example buttons -->
+    <button onclick="themeEngine.toggleMode()">Toggle Light/Dark (t)</button>
+    <button onclick="themeEngine.nextTheme()">Next Theme (n)</button>
+
+  </footer>
+
+  <script src="theme.js"></script>
+</body>
+
+</html>
+
+

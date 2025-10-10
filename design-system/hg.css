@@ -1,0 +1,74 @@
+/* --------------------------------------------- */
+/* Holy Grail Layout Styles                      */
+/* --------------------------------------------- */
+
+/* Structure */
+.layout {
+  display: grid;
+  grid-template-columns: 16rem 1fr 16rem;
+  gap: var(--space-4);
+  min-height: calc(100vh - 8rem); /* minus header/footer approx */
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Header & Footer */
+.header,
+.footer {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+/* Sidebars */
+.sidebar-left,
+.sidebar-right {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.border-right { border-right: 1px solid var(--color-border); }
+.border-left  { border-left: 1px solid var(--color-border); }
+.border-top   { border-top: 1px solid var(--color-border); }
+.border-bottom{ border-bottom: 1px solid var(--color-border); }
+
+/* Main content */
+.main {
+  background: var(--color-bg);
+  overflow: auto;
+}
+
+/* Responsive behavior */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 14rem 1fr;
+  }
+  .sidebar-right {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-left {
+    order: -1;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* Optional sticky header/footer */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+}
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
