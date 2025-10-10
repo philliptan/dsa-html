@@ -12,6 +12,44 @@
     <button onclick="themeEngine.toggleMode()">Toggle Light/Dark (t)</button>
     <button onclick="themeEngine.nextTheme()">Next Theme (n)</button>
 
+    <div class="container">
+      <div class="card">
+        <h2>Hello!</h2>
+        <p>This card and all components are fully token-driven.</p>
+        <button class="button primary">Primary</button>
+        <button class="button accent">Accent</button>
+        <button class="button outline">Outline</button>
+
+        <hr class="hr" />
+
+        <input class="input" placeholder="Type something..." />
+
+        <div class="alert success">Success!</div>
+        <div class="alert warning">Warning!</div>
+        <div class="alert danger">Danger!</div>
+
+        <div class="switch" onclick="this.dataset.checked = this.dataset.checked !== 'true'"></div>
+      </div>
+    </div>
+
+    <div class="card p-4 shadow flex justify-between items-center">
+      <span class="text-lg font-medium">Welcome back</span>
+      <button class="button primary text-sm">Action</button>
+    </div>
+
+    <p class="mt-4 text-sm text-text">
+    Combine component classes with utilities:
+    <span class="text-accent">.text-accent</span>,
+    <span class="bg-primary text-invert p-1 rounded">.bg-primary</span>,
+    etc.
+    </p>
+
+    <div class="mt-4 flex gap-2">
+      <button class="button outline text-sm">Cancel</button>
+      <button class="button accent text-sm shadow-sm hover:bg-accent transition">Save</button>
+    </div>
+
+
     <script src="theme.js"></script>
   </body>
 </html>

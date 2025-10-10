@@ -1,3 +1,5 @@
-faiss-cpu
+# faiss-cpu
+# sentence-transformers
+# watchdog
 sentence-transformers
-watchdog
+opensearch-py

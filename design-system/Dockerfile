@@ -10,9 +10,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy scripts
-COPY local_token_rag.py .
+COPY local_token_rag_opensearch.py .
 COPY tokens.css .
 
 # Default command prints help
-ENTRYPOINT ["python", "local_token_rag.py"]
+ENTRYPOINT ["python", "local_token_rag_opensearch.py"]
 CMD ["--help"]

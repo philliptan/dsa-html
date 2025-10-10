@@ -1,0 +1,95 @@
+/* --------------------------------------------- */
+/* Utility Layer — 2025 Edition                  */
+/* Minimal, token-based, hue-aware utilities     */
+/* --------------------------------------------- */
+
+/* === 1. Spacing scale === */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+}
+
+/* Margin & padding */
+.m-0 { margin: 0; }
+.mt-1 { margin-top: var(--space-1); }
+.mb-1 { margin-bottom: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-4 { margin-bottom: var(--space-4); }
+
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-4 { padding: var(--space-4); }
+
+/* === 2. Layout & flex === */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+
+/* === 3. Typography === */
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* === 4. Border radius === */
+.rounded { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.75rem; }
+.rounded-full { border-radius: 9999px; }
+
+/* === 5. Colors (driven by tokens) === */
+.bg-bg        { background-color: var(--color-bg); }
+.bg-surface   { background-color: var(--color-surface); }
+.bg-primary   { background-color: var(--color-primary); }
+.bg-accent    { background-color: var(--color-accent); }
+.text-text    { color: var(--color-text); }
+.text-primary { color: var(--color-primary); }
+.text-accent  { color: var(--color-accent); }
+.border       { border: 1px solid var(--color-border); }
+.border-none  { border: none; }
+.border-primary { border-color: var(--color-primary); }
+
+/* Hover utilities (use color-mix for shading) */
+.hover\:bg-primary:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 80%, white);
+}
+.hover\:bg-accent:hover {
+  background-color: color-mix(in oklch, var(--color-accent) 80%, white);
+}
+
+/* === 6. Shadows === */
+.shadow-sm {
+  box-shadow: 0 1px 3px color-mix(in oklch, var(--color-border) 50%, transparent);
+}
+.shadow {
+  box-shadow: 0 2px 6px color-mix(in oklch, var(--color-border) 60%, transparent);
+}
+.shadow-lg {
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-border) 70%, transparent);
+}
+
+/* === 7. Transitions === */
+.transition { transition: all 0.2s ease; }
+.duration-300 { transition-duration: 0.3s; }
+
+/* === 8. Width / Height helpers === */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.max-w-sm { max-width: 24rem; }
+.max-w-md { max-width: 32rem; }
+
+/* === 9. Utilities for dark / light text balancing === */
+[data-mode="dark"] .text-invert { color: var(--color-bg); }
+[data-mode="light"] .text-invert { color: var(--color-text); }

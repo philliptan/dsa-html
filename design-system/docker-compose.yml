@@ -1,0 +1,20 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=lli7qUrJy95P3P!6ro
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+
+  rag-color-engine:
+    build: .
+    container_name: rag-color-engine
+    depends_on:
+      - opensearch
+    volumes:
+      - .:/app
+    command: ["python", "local_token_rag_opensearch.py", "build"]
