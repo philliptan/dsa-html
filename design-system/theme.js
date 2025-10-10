@@ -1,68 +1,92 @@
 /**
- * Theme Engine — lightweight and framework-agnostic
- * Works with data-theme and data-mode attributes on <html>
- * Requires your CSS token system already loaded.
+ * Hue-morphing Theme Engine
+ * - Animates hue variables for a smooth visual shift
+ * - Keeps localStorage persistence
+ * - Works with your OKLCH token system
  */
 
 (() => {
   const root = document.documentElement;
 
-  // 1. Available theme presets
-  const themes = ["ocean", "sunset", "forest"];
+  // Theme definitions: each is just hue triplets
+  const themes = {
+    ocean: { primary: 205, accent: 175, neutral: 240 },
+    sunset: { primary: 15, accent: 35, neutral: 25 },
+    forest: { primary: 140, accent: 90, neutral: 120 }
+  };
 
-  // 2. Simple helpers
-  const setTheme = (name) => {
-    if (!themes.includes(name)) return;
+  // ---------- helpers ----------
+  const setMode = (mode) => {
+    root.dataset.mode = mode;
+    localStorage.setItem("theme-mode", mode);
+  };
+
+  const toggleMode = () =>
+    setMode(root.dataset.mode === "dark" ? "light" : "dark");
+
+  const getCurrentTheme = () =>
+    root.dataset.theme || Object.keys(themes)[0];
+
+  const setThemeInstant = (name) => {
+    const t = themes[name];
+    if (!t) return;
+    root.style.setProperty("--hue-primary", t.primary);
+    root.style.setProperty("--hue-accent", t.accent);
+    root.style.setProperty("--hue-neutral", t.neutral);
     root.dataset.theme = name;
     localStorage.setItem("theme-name", name);
   };
 
-  const setMode = (mode) => {
-    root.dataset.mode = mode; // "light" or "dark"
-    localStorage.setItem("theme-mode", mode);
-  };
+  // Animate hues numerically over 600 ms
+  const morphTheme = (target) => {
+    const start = {
+      p: parseFloat(getComputedStyle(root).getPropertyValue("--hue-primary")),
+      a: parseFloat(getComputedStyle(root).getPropertyValue("--hue-accent")),
+      n: parseFloat(getComputedStyle(root).getPropertyValue("--hue-neutral"))
+    };
+    const end = themes[target];
+    if (!end) return;
 
-  const toggleMode = () => {
-    const current = root.dataset.mode === "dark" ? "light" : "dark";
-    setMode(current);
+    const dur = 600;
+    const t0 = performance.now();
+
+    const step = (now) => {
+      const f = Math.min((now - t0) / dur, 1);
+      const ease = 0.5 - Math.cos(f * Math.PI) / 2; // easeInOut
+      root.style.setProperty("--hue-primary", start.p + (end.primary - start.p) * ease);
+      root.style.setProperty("--hue-accent", start.a + (end.accent - start.a) * ease);
+      root.style.setProperty("--hue-neutral", start.n + (end.neutral - start.n) * ease);
+      if (f < 1) requestAnimationFrame(step);
+      else {
+        root.dataset.theme = target;
+        localStorage.setItem("theme-name", target);
+      }
+    };
+    requestAnimationFrame(step);
   };
 
   const nextTheme = () => {
-    const current = root.dataset.theme || themes[0];
-    const idx = themes.indexOf(current);
-    setTheme(themes[(idx + 1) % themes.length]);
+    const keys = Object.keys(themes);
+    const i = keys.indexOf(getCurrentTheme());
+    morphTheme(keys[(i + 1) % keys.length]);
   };
 
-  // 3. Restore user preference on load
-  const storedTheme = localStorage.getItem("theme-name");
+  // ---------- restore saved preferences ----------
+  const storedName = localStorage.getItem("theme-name");
   const storedMode = localStorage.getItem("theme-mode");
 
-  if (storedTheme && themes.includes(storedTheme)) {
-    root.dataset.theme = storedTheme;
-  } else {
-    root.dataset.theme = themes[0];
-  }
+  if (storedName && themes[storedName]) setThemeInstant(storedName);
+  else setThemeInstant(Object.keys(themes)[0]);
 
-  if (storedMode) {
-    root.dataset.mode = storedMode;
-  } else {
-    // Default: match system preference
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    root.dataset.mode = prefersDark ? "dark" : "light";
-  }
+  if (storedMode) root.dataset.mode = storedMode;
+  else root.dataset.mode = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 
-  // 4. Smooth transition effect
-  const addTransition = () => {
-    root.style.transition = "color 0.4s ease, background-color 0.4s ease, filter 0.4s ease";
-    setTimeout(() => (root.style.transition = ""), 600);
-  };
-
-  // 5. Optional keyboard shortcuts
+  // ---------- keyboard shortcuts ----------
   window.addEventListener("keydown", (e) => {
-    if (e.key === "t") { addTransition(); toggleMode(); }
-    if (e.key === "n") { addTransition(); nextTheme(); }
+    if (e.key === "t") toggleMode();
+    if (e.key === "n") nextTheme();
   });
 
-  // 6. Expose small API globally
-  window.themeEngine = { setTheme, setMode, toggleMode, nextTheme };
+  // expose API
+  window.themeEngine = { morphTheme, nextTheme, toggleMode, setMode };
 })();
