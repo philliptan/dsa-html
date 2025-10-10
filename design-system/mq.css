@@ -154,3 +154,114 @@
   .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
   .lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 }
+
+
+/* --------------------------------------------- */
+/* Responsive + Media Query Layer — 2025 Edition */
+/* Works with your token + utility system        */
+/* --------------------------------------------- */
+
+/* === 1. Breakpoints (viewport-based) === */
+@media (width < 480px)  { :root { --bp: "xs"; } } /* phones */
+@media (width >= 480px) { :root { --bp: "sm"; } }
+@media (width >= 768px) { :root { --bp: "md"; } }
+@media (width >= 1024px){ :root { --bp: "lg"; } }
+@media (width >= 1280px){ :root { --bp: "xl"; } }
+
+/* These breakpoints are reused below as @media rules */
+
+/* === 2. Responsive container widths === */
+.container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+@media (min-width: 640px) { .container { max-width: 36rem; } }  /* sm */
+@media (min-width: 768px) { .container { max-width: 48rem; } }  /* md */
+@media (min-width: 1024px){ .container { max-width: 64rem; } }  /* lg */
+@media (min-width: 1280px){ .container { max-width: 80rem; } }  /* xl */
+
+/* === 3. Responsive display helpers === */
+.hidden { display: none !important; }
+.block { display: block; }
+
+@media (min-width: 640px) { .sm\:block { display: block; } }
+@media (min-width: 640px) { .sm\:hidden { display: none !important; } }
+
+@media (min-width: 768px) { .md\:block { display: block; } }
+@media (min-width: 768px) { .md\:hidden { display: none !important; } }
+
+@media (min-width: 1024px){ .lg\:block { display: block; } }
+@media (min-width: 1024px){ .lg\:hidden { display: none !important; } }
+
+/* === 4. Responsive text sizes === */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+
+@media (min-width: 640px) {
+  .sm\:text-lg { font-size: 1.125rem; }
+  .sm\:text-xl { font-size: 1.25rem; }
+}
+@media (min-width: 768px) {
+  .md\:text-lg { font-size: 1.25rem; }
+  .md\:text-2xl { font-size: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .lg\:text-xl { font-size: 1.25rem; }
+  .lg\:text-2xl { font-size: 1.5rem; }
+  .lg\:text-3xl { font-size: 1.875rem; }
+}
+
+/* === 5. Responsive spacing utilities === */
+@media (min-width: 640px) {
+  .sm\:p-4 { padding: var(--space-4); }
+  .sm\:p-6 { padding: var(--space-6); }
+}
+@media (min-width: 768px) {
+  .md\:p-4 { padding: var(--space-4); }
+  .md\:p-8 { padding: 3rem; }
+}
+@media (min-width: 1024px) {
+  .lg\:p-8 { padding: 3rem; }
+  .lg\:p-10 { padding: 4rem; }
+}
+
+/* === 6. Container Query Example === */
+/* For responsive cards that depend on parent width */
+@container (min-width: 30rem) {
+  .card--responsive {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-4);
+  }
+}
+
+/* === 7. Adaptive typography === */
+/* Using clamp() for fluid scaling */
+:root {
+  --font-fluid-sm: clamp(0.875rem, 1vw + 0.5rem, 1rem);
+  --font-fluid-base: clamp(1rem, 1.2vw + 0.5rem, 1.25rem);
+  --font-fluid-lg: clamp(1.125rem, 2vw + 0.5rem, 1.5rem);
+}
+.text-fluid-sm { font-size: var(--font-fluid-sm); }
+.text-fluid-base { font-size: var(--font-fluid-base); }
+.text-fluid-lg { font-size: var(--font-fluid-lg); }
+
+/* === 8. Motion preferences === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* === 9. Light/Dark-specific adjustments === */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode]) {
+    background: var(--neutral-900);
+    color: var(--neutral-50);
+  }
+}
