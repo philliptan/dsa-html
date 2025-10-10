@@ -1,0 +1,164 @@
+/* --------------------------------------------- */
+/* Template Layer — 2025 Edition                 */
+/* Type: "template"                              */
+/* Examples: Dashboard, Settings, Table+Filters, */
+/*            Centered Form                      */
+/* --------------------------------------------- */
+
+/* 1️⃣ DASHBOARD TEMPLATE */
+.template-dashboard {
+  display: grid;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+  grid-template-columns: 16rem 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.dashboard-sidebar {
+  grid-area: sidebar;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dashboard-header {
+  grid-area: header;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+}
+
+.dashboard-main {
+  grid-area: main;
+  padding: var(--space-5);
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+/* Sidebar links */
+.nav-link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--space-1);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.nav-link:hover,
+.nav-link[data-active="true"] {
+  background: color-mix(in oklch, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+/* 2️⃣ SETTINGS 2-COLUMN TEMPLATE */
+.template-settings {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-6);
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: var(--space-6);
+}
+@media (max-width: 64em) {
+  .template-settings {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-nav {
+  border-right: 1px solid var(--color-border);
+  padding-right: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.settings-content {
+  background: var(--color-surface);
+  padding: var(--space-5);
+  border-radius: var(--space-2);
+}
+
+/* 3️⃣ TABLE + FILTERS TEMPLATE */
+.template-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-bg);
+}
+
+.table-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+  background: var(--color-surface);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--space-2);
+}
+
+.table-filters .input {
+  width: 12rem;
+}
+.table-filters .button {
+  align-self: center;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--space-2);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+.table th {
+  background: var(--neutral-100);
+  font-weight: 600;
+}
+.table tr:hover {
+  background: color-mix(in oklch, var(--color-border) 20%, transparent);
+}
+
+/* 4️⃣ CENTERED FORM TEMPLATE */
+.template-centered-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--color-surface);
+  padding: var(--space-5);
+}
+
+.centered-form {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--space-3);
+  padding: var(--space-6);
+  width: 100%;
+  max-width: 28rem;
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-border) 60%, transparent);
+}
+.centered-form h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: var(--space-4);
+}

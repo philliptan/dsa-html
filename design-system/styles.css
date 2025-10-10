@@ -5,3 +5,4 @@
 @import 'patterns.css' layer(patterns);
 @import 'mq.css' layer(mq);
 @import 'cq.css' layer(cq);
+@import 'templates.css' layer(templates);
