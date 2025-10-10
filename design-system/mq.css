@@ -1,0 +1,156 @@
+/* --------------------------------------------- */
+/* Responsive Patterns — 2025 Edition            */
+/* --------------------------------------------- */
+
+/* === 1. Breakpoint Tokens === */
+:root {
+  --bp-sm: 30em;  /* ~480px */
+  --bp-md: 48em;  /* ~768px */
+  --bp-lg: 64em;  /* ~1024px */
+  --bp-xl: 80em;  /* ~1280px */
+}
+
+/* === 2. Container & Layout Adjustments === */
+.container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+  max-width: var(--bp-lg);
+}
+
+/* Use media queries built from tokens */
+@media (max-width: var(--bp-md)) {
+  .container {
+    padding-inline: var(--space-2);
+  }
+}
+
+/* === 3. Responsive Form Layout === */
+.form-layout {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 36rem;
+  margin-inline: auto;
+}
+@media (min-width: var(--bp-md)) {
+  .form-layout--two-col {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+  .form-layout--two-col .form-group:nth-child(odd) {
+    grid-column: 1;
+  }
+  .form-layout--two-col .form-group:nth-child(even) {
+    grid-column: 2;
+  }
+}
+
+/* === 4. Auth Wall Adaptive Split === */
+.auth-wall {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-surface);
+}
+.auth-wall__panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+@media (min-width: var(--bp-lg)) {
+  .auth-wall__panel--illustration {
+    background: color-mix(in oklch, var(--color-primary) 15%, var(--color-surface));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+/* === 5. Responsive Card Grid === */
+.card-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+@media (min-width: var(--bp-md)) {
+  .card-grid--wide {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  }
+}
+@media (max-width: var(--bp-sm)) {
+  .card-grid {
+    gap: var(--space-3);
+  }
+}
+
+/* === 6. Empty State Adaptiveness === */
+.empty-state {
+  padding: var(--space-6);
+  border-radius: var(--space-2);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface);
+  text-align: center;
+}
+.empty-state__icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-2);
+}
+@media (min-width: var(--bp-md)) {
+  .empty-state {
+    padding: var(--space-8);
+  }
+  .empty-state__icon {
+    font-size: 4rem;
+  }
+}
+
+/* === 7. Wizard Stepper Responsiveness === */
+.wizard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.wizard-step__label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+@media (max-width: var(--bp-sm)) {
+  .wizard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .wizard-divider {
+    display: none;
+  }
+  .wizard-step__label {
+    font-size: 0.8rem;
+  }
+}
+@media (min-width: var(--bp-md)) {
+  .wizard-step__circle {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+/* === 8. Responsive Utility Shortcuts === */
+/* These can be applied directly to any element */
+@media (min-width: var(--bp-md)) {
+  .md\:flex { display: flex; }
+  .md\:grid { display: grid; }
+  .md\:hidden { display: none; }
+  .md\:text-center { text-align: center; }
+  .md\:p-6 { padding: var(--space-6); }
+}
+
+@media (min-width: var(--bp-lg)) {
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+}

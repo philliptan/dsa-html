@@ -3,3 +3,5 @@
 @import 'utility.css' layer(utility);
 @import 'components.css' layer(components);
 @import 'patterns.css' layer(patterns);
+@import 'mq.css' layer(mq);
+@import 'cq.css' layer(cq);
