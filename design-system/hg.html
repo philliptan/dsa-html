@@ -11,10 +11,19 @@
 <!--  Holy Grail Page Markup -->
 <!-- ======================= -->
 <body>
-  <header class="header p-4 bg-surface border-bottom">
+<header class="header p-4 bg-surface border-bottom">
     <div class="container flex justify-between items-center">
       <h1 class="text-lg font-bold text-primary">Modern UI</h1>
-      <nav class="flex gap-2">
+
+      <!-- Toggle button (mobile) -->
+      <button id="navToggle"
+        class="button outline md:hidden text-sm text-primary"
+        aria-controls="sidebar"
+        aria-expanded="false">
+        ☰ Menu
+      </button>
+
+      <nav class="hidden md:flex gap-3">
         <a href="#" class="text-text hover:text-accent">Home</a>
         <a href="#" class="text-text hover:text-accent">Docs</a>
         <a href="#" class="text-text hover:text-accent">About</a>
@@ -23,7 +32,8 @@
   </header>
 
   <div class="layout">
-    <aside class="sidebar-left p-4 bg-surface border-right">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar-left p-4 bg-surface border-right">
       <h3 class="text-sm font-medium mb-2">Navigation</h3>
       <ul class="text-sm">
         <li><a href="#" class="text-text hover:text-accent">Dashboard</a></li>
@@ -32,25 +42,21 @@
       </ul>
     </aside>
 
+    <!-- Main content -->
     <main class="main p-4">
       <h2 class="text-fluid-lg font-bold mb-4">Main Content</h2>
-      <p class="mb-4">
-        This area expands to fill the remaining space. It’s driven by OKLCH tokens,
-        fully responsive, and inherits your theming system.
-      </p>
-
+      <p class="mb-4">Resize or toggle the sidebar to test responsiveness.</p>
       <div class="card mb-4">
         <h3 class="font-medium mb-2">Card Example</h3>
-        <p>Use this space for articles, dashboards, or documentation sections.</p>
+        <p>Fully token-driven, theme-aware, and responsive.</p>
       </div>
     </main>
 
     <aside class="sidebar-right p-4 bg-surface border-left">
       <h3 class="text-sm font-medium mb-2">Updates</h3>
-      <p class="text-sm">Sidebar content or ads go here.</p>
+      <p class="text-sm">Sidebar B content.</p>
     </aside>
   </div>
-
   <footer class="footer p-4 bg-surface border-top text-center text-sm">
     © 2025 Modern UI System. All rights reserved.
         <!-- Example buttons -->
@@ -58,8 +64,39 @@
     <button onclick="themeEngine.nextTheme()">Next Theme (n)</button>
 
   </footer>
-
+<!-- Overlay for mobile drawer -->
+  <div id="overlay" class="overlay"></div>
   <script src="theme.js"></script>
+  <script>
+/* Drawer + overlay control */
+(() => {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const toggleBtn = document.getElementById("navToggle");
+
+  const openDrawer = () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("active");
+    toggleBtn.setAttribute("aria-expanded", "true");
+  };
+  const closeDrawer = () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("active");
+    toggleBtn.setAttribute("aria-expanded", "false");
+  };
+
+  toggleBtn.addEventListener("click", () => {
+    const isOpen = sidebar.classList.contains("open");
+    isOpen ? closeDrawer() : openDrawer();
+  });
+  overlay.addEventListener("click", closeDrawer);
+
+  // Close on escape
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDrawer();
+  });
+})();
+</script>
 </body>
 
 </html>
