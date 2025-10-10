@@ -2,3 +2,4 @@
 @import 'tokens.css' layer(tokens);
 @import 'utility.css' layer(utility);
 @import 'components.css' layer(components);
+@import 'patterns.css' layer(patterns);

@@ -49,6 +49,79 @@
       <button class="button accent text-sm shadow-sm hover:bg-accent transition">Save</button>
     </div>
 
+    <form class="form-layout">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="input" type="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="input" type="password" placeholder="••••••••" />
+      </div>
+
+      <div class="form-actions">
+        <button class="button outline">Cancel</button>
+        <button class="button primary">Submit</button>
+      </div>
+    </form>
+
+    <section class="auth-wall">
+      <div class="auth-wall__panel">
+        <div class="auth-wall__card">
+          <div class="auth-wall__brand">MyApp</div>
+          <form class="form-layout">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="input" type="email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input class="input" type="password" />
+            </div>
+            <div class="form-actions">
+              <button class="button primary w-full">Sign In</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="card-grid">
+      <article class="card">
+        <h3>Card Title</h3>
+        <p>Card description text.</p>
+      </article>
+      <article class="card">
+        <h3>Card Title</h3>
+        <p>Another card content.</p>
+      </article>
+    </section>
+
+    <div class="empty-state">
+      <div class="empty-state__icon">🗂️</div>
+      <div class="empty-state__title">No items found</div>
+      <div class="empty-state__desc">You haven’t added anything yet.</div>
+      <button class="button accent">Add New Item</button>
+    </div>
+
+    <div class="wizard">
+      <div class="wizard-step" data-complete="true">
+        <div class="wizard-step__circle">1</div>
+        <div class="wizard-step__label">Account</div>
+      </div>
+      <div class="wizard-divider"></div>
+      <div class="wizard-step" data-active="true">
+        <div class="wizard-step__circle">2</div>
+        <div class="wizard-step__label">Details</div>
+      </div>
+      <div class="wizard-divider"></div>
+      <div class="wizard-step">
+        <div class="wizard-step__circle">3</div>
+        <div class="wizard-step__label">Confirm</div>
+      </div>
+    </div>
+
 
     <script src="theme.js"></script>
   </body>
