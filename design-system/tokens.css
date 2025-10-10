@@ -1,0 +1,132 @@
+/* --------------------------------------------- */
+/* Multi-Hue Token System — 2025 Edition         */
+/* Themes: Ocean | Sunset | Forest               */
+/* Uses OKLCH + color-mix() + HSL fallback       */
+/* --------------------------------------------- */
+
+/* === 1. Base variables shared by all themes === */
+:root {
+  --tone-step: 10%;
+  --chroma-strong: 0.24;
+  --chroma-medium: 0.12;
+  --chroma-weak: 0.05;
+}
+
+/* === 2. THEME MAPS — hue sets for each theme === */
+:root[data-theme="ocean"] {
+  --hue-primary: 205;
+  --hue-accent: 175;
+  --hue-neutral: 240;
+}
+
+:root[data-theme="sunset"] {
+  --hue-primary: 15;
+  --hue-accent: 35;
+  --hue-neutral: 25;
+}
+
+:root[data-theme="forest"] {
+  --hue-primary: 140;
+  --hue-accent: 90;
+  --hue-neutral: 120;
+}
+
+/* === 3. Derived base colors from hues === */
+:root {
+  --neutral-base: oklch(0.55 var(--chroma-weak) var(--hue-neutral));
+  --primary-base: oklch(0.55 var(--chroma-strong) var(--hue-primary));
+  --accent-base:  oklch(0.55 var(--chroma-strong) var(--hue-accent));
+}
+
+/* === 4. Auto-generated tone scales === */
+:root {
+  --neutral-50:  color-mix(in oklch, white calc(90% - var(--tone-step)), var(--neutral-base));
+  --neutral-900: color-mix(in oklch, black calc(75% + var(--tone-step)), var(--neutral-base));
+
+  --primary-50:  color-mix(in oklch, white calc(90% - var(--tone-step)), var(--primary-base));
+  --primary-900: color-mix(in oklch, black calc(75% + var(--tone-step)), var(--primary-base));
+
+  --accent-50:   color-mix(in oklch, white calc(90% - var(--tone-step)), var(--accent-base));
+  --accent-900:  color-mix(in oklch, black calc(75% + var(--tone-step)), var(--accent-base));
+
+  /* midpoints */
+  --neutral-100: color-mix(in oklch, white 80%, var(--neutral-base));
+  --neutral-200: color-mix(in oklch, white 65%, var(--neutral-base));
+  --neutral-300: color-mix(in oklch, white 50%, var(--neutral-base));
+  --neutral-400: color-mix(in oklch, white 30%, var(--neutral-base));
+  --neutral-500: var(--neutral-base);
+  --neutral-600: color-mix(in oklch, black 20%, var(--neutral-base));
+  --neutral-700: color-mix(in oklch, black 35%, var(--neutral-base));
+  --neutral-800: color-mix(in oklch, black 55%, var(--neutral-base));
+
+  /* copy pattern for primary / accent */
+  --primary-100: color-mix(in oklch, white 80%, var(--primary-base));
+  --primary-200: color-mix(in oklch, white 65%, var(--primary-base));
+  --primary-300: color-mix(in oklch, white 50%, var(--primary-base));
+  --primary-400: color-mix(in oklch, white 30%, var(--primary-base));
+  --primary-500: var(--primary-base);
+  --primary-600: color-mix(in oklch, black 20%, var(--primary-base));
+  --primary-700: color-mix(in oklch, black 35%, var(--primary-base));
+  --primary-800: color-mix(in oklch, black 55%, var(--primary-base));
+
+  --accent-100: color-mix(in oklch, white 80%, var(--accent-base));
+  --accent-200: color-mix(in oklch, white 65%, var(--accent-base));
+  --accent-300: color-mix(in oklch, white 50%, var(--accent-base));
+  --accent-400: color-mix(in oklch, white 30%, var(--accent-base));
+  --accent-500: var(--accent-base);
+  --accent-600: color-mix(in oklch, black 20%, var(--accent-base));
+  --accent-700: color-mix(in oklch, black 35%, var(--accent-base));
+  --accent-800: color-mix(in oklch, black 55%, var(--accent-base));
+}
+
+/* === 5. Semantic layer === */
+:root {
+  --color-bg: var(--neutral-50);
+  --color-surface: var(--neutral-100);
+  --color-border: var(--neutral-200);
+  --color-text: var(--neutral-900);
+  --color-primary: var(--primary-500);
+  --color-primary-hover: var(--primary-400);
+  --color-accent: var(--accent-500);
+  --color-accent-hover: var(--accent-400);
+}
+
+/* === 6. Dark theme === */
+[data-mode="dark"] {
+  --color-bg: var(--neutral-900);
+  --color-surface: var(--neutral-800);
+  --color-border: var(--neutral-700);
+  --color-text: var(--neutral-100);
+  --color-primary: var(--primary-400);
+  --color-primary-hover: var(--primary-300);
+  --color-accent: var(--accent-400);
+  --color-accent-hover: var(--accent-300);
+}
+
+/* === 7. Fallback if color-mix unsupported === */
+@supports not (color: color-mix(in oklch, white 50%, black)) {
+  :root {
+    --neutral-50:  hsl(var(--hue-neutral) 5% 97%);
+    --neutral-900: hsl(var(--hue-neutral) 5% 10%);
+    --primary-500: hsl(var(--hue-primary) 60% 55%);
+    --accent-500:  hsl(var(--hue-accent) 65% 55%);
+  }
+}
+
+/* === 8. Base usage === */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+button {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+button:hover {
+  background: var(--color-primary-hover);
+}
