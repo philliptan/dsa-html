@@ -1,0 +1,223 @@
+/* ========================================================================== */
+/* 🎨 DESIGN TOKENS — HUE-DRIVEN SYSTEM (2025)                                */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* 🧱 1. Core Hues & Base Values                                              */
+/* ========================================================================== */
+:root {
+  /* 🎨 Hues */
+  --hue-brand: 220;
+  --hue-accent: 280;
+  --hue-success: 145;
+  --hue-danger: 0;
+  --hue-warning: 40;
+  --hue-neutral: 210;
+
+  /* 🌈 Saturation / Lightness Controls */
+  --saturation-strong: 90%;
+  --saturation-medium: 60%;
+  --saturation-weak: 20%;
+
+  --lightness-dark: 25%;
+  --lightness-mid: 50%;
+  --lightness-light: 95%;
+}
+
+/* ========================================================================== */
+/* 🌗 2. Theme Colors (Light / Dark)                                          */
+/* ========================================================================== */
+:root[data-theme="light"] {
+  /* Backgrounds */
+  --color-bg-primary: hsl(var(--hue-neutral) 20% 98%);
+  --color-bg-secondary: hsl(var(--hue-neutral) 25% 95%);
+
+  /* Text */
+  --color-text-primary: hsl(var(--hue-neutral) 25% 15%);
+  --color-text-secondary: hsl(var(--hue-neutral) 10% 40%);
+
+  /* Borders */
+  --color-border: hsl(var(--hue-neutral) 10% 85%);
+
+  /* Brand & Feedback */
+  --color-brand: hsl(var(--hue-brand) var(--saturation-strong) 55%);
+  --color-brand-hover: hsl(var(--hue-brand) var(--saturation-strong) 45%);
+  --color-success: hsl(var(--hue-success) 65% 45%);
+  --color-danger: hsl(var(--hue-danger) 70% 50%);
+  --color-warning: hsl(var(--hue-warning) 80% 45%);
+
+  /* Focus */
+  --color-focus-ring: hsl(var(--hue-brand) 90% 55% / 0.5);
+}
+
+:root[data-theme="dark"] {
+  /* Backgrounds */
+  --color-bg-primary: hsl(var(--hue-neutral) 15% 10%);
+  --color-bg-secondary: hsl(var(--hue-neutral) 10% 15%);
+
+  /* Text */
+  --color-text-primary: hsl(var(--hue-neutral) 15% 95%);
+  --color-text-secondary: hsl(var(--hue-neutral) 10% 70%);
+
+  /* Borders */
+  --color-border: hsl(var(--hue-neutral) 10% 30%);
+
+  /* Brand & Feedback */
+  --color-brand: hsl(var(--hue-brand) var(--saturation-strong) 60%);
+  --color-brand-hover: hsl(var(--hue-brand) var(--saturation-strong) 70%);
+  --color-success: hsl(var(--hue-success) 55% 55%);
+  --color-danger: hsl(var(--hue-danger) 65% 60%);
+  --color-warning: hsl(var(--hue-warning) 70% 55%);
+
+  /* Focus */
+  --color-focus-ring: hsl(var(--hue-brand) 90% 70% / 0.6);
+}
+
+/* ========================================================================== */
+/* 🔤 3. Typography Tokens                                                    */
+/* ========================================================================== */
+:root {
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-mono: 'Fira Code', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+
+  /* Line Heights */
+  --line-height-xs: 1.1;
+  --line-height-sm: 1.3;
+  --line-height-md: 1.5;
+  --line-height-lg: 1.6;
+  --line-height-xl: 1.8;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.02em;
+
+  /* Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+}
+
+/* ========================================================================== */
+/* 📏 4. Spacing & Layout Tokens                                              */
+/* ========================================================================== */
+:root {
+  /* Spacing Scale */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* Container Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+
+  /* Breakpoints */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+}
+
+/* ========================================================================== */
+/* 🪞 5. Border & Radius Tokens                                               */
+/* ========================================================================== */
+:root {
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+
+  --radius-none: 0;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-pill: 9999px;
+}
+
+/* ========================================================================== */
+/* ☁️ 6. Elevation / Shadow / Blur Tokens                                    */
+/* ========================================================================== */
+:root[data-theme="light"] {
+  --shadow-elevation-low: 0 1px 2px hsl(var(--hue-neutral) 20% 10% / 0.1);
+  --shadow-elevation-medium: 0 4px 6px hsl(var(--hue-neutral) 20% 10% / 0.15);
+  --shadow-elevation-high: 0 8px 16px hsl(var(--hue-neutral) 20% 10% / 0.2);
+}
+
+:root[data-theme="dark"] {
+  --shadow-elevation-low: 0 1px 2px hsl(var(--hue-neutral) 20% 90% / 0.1);
+  --shadow-elevation-medium: 0 4px 6px hsl(var(--hue-neutral) 20% 90% / 0.15);
+  --shadow-elevation-high: 0 8px 16px hsl(var(--hue-neutral) 20% 90% / 0.2);
+}
+
+:root {
+  --blur-sm: 4px;
+  --blur-md: 8px;
+  --blur-lg: 16px;
+  --backdrop-opacity: 0.7;
+}
+
+/* ========================================================================== */
+/* 🧩 7. Motion / Animation Tokens                                            */
+/* ========================================================================== */
+:root {
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================================================== */
+/* 🪜 8. Z-Index Tokens                                                      */
+/* ========================================================================== */
+:root {
+  --z-base: 0;
+  --z-header: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-tooltip: 900;
+  --z-overlay: 1000;
+  --z-popover: 1100;
+  --z-modal: 1200;
+  --z-toast: 1300;
+  --z-max: 9999;
+}
+
+/* ========================================================================== */
+/* 🧠 9. Semantic / Component Tokens                                         */
+/* ========================================================================== */
+:root {
+  --button-bg-default: var(--color-brand);
+  --button-bg-hover: var(--color-brand-hover);
+  --button-text: hsl(var(--hue-neutral) 0% 100%);
+  --input-border: var(--color-border);
+  --input-border-focus: var(--color-focus-ring);
+  --card-bg: var(--color-bg-secondary);
+  --card-shadow: var(--shadow-elevation-medium);
+}
+
+/* ========================================================================== */
+/* 🏷️ 10. Brand Tokens (optional, for multi-brand systems)                   */
+/* ========================================================================== */
+:root {
+  --brand-primary-hue: var(--hue-brand);
+  --brand-secondary-hue: var(--hue-accent);
+  --brand-font: 'Inter', sans-serif;
+  --brand-radius: var(--radius-md);
+}
