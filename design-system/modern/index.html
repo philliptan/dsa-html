@@ -30,36 +30,24 @@
 
       <!-- Main content area -->
       <section class="stack-lg wrapper page-main" id="component-demos">
-        <article id="buttons" class="stack component-demo">
+        <!-- Buttons Demo -->
+        <article id="buttons"
+                 class="stack component-demo lazy-demo"
+                 data-demo="buttons">
           <header class="cluster justify-between align-center component-header">
             <h2>Buttons</h2>
             <div class="toolbar cluster">
-              <button class="toolbar-btn">HTML</button>
-              <button class="toolbar-btn">CSS</button>
-              <button class="toolbar-btn">JS</button>
+              <button class="toolbar-btn" disabled>HTML</button>
+              <button class="toolbar-btn" disabled>CSS</button>
+              <button class="toolbar-btn" disabled>JS</button>
             </div>
           </header>
-
-          <div class="demo-area">
-            <button class="btn-primary">Primary Button</button>
-            <button class="btn-secondary">Secondary Button</button>
-          </div>
-
-          <pre class="code-html" style="display:none;"><code>
-&lt;button class="btn-primary"&gt;Primary Button&lt;/button&gt;
-&lt;button class="btn-secondary"&gt;Secondary Button&lt;/button&gt;
-          </code></pre>
-
-          <pre class="code-css" style="display:none;"><code>
-.btn-primary { background: var(--color-primary); color: var(--color-bg); }
-.btn-secondary { background: var(--color-secondary); color: var(--color-bg); }
-          </code></pre>
-
-          <pre class="code-js" style="display:none;"><code>
-console.log("Button demo loaded!");
-          </code></pre>
+          <div class="demo-area loading">Loading demo…</div>
         </article>
+
+        <!-- Add more demos here -->
       </section>
+
     </main>
 
     <footer class="center page-footer">
@@ -67,6 +55,7 @@ console.log("Button demo loaded!");
     </footer>
   </div>
 
+<script type="module" src="page.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const demos = document.querySelectorAll(".component-demo");

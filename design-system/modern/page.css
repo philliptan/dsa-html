@@ -124,3 +124,17 @@ Component Demos + Toolbar
     text-align: center;
   }
 }
+
+.demo-area.loading {
+    opacity: 0.5;
+    text-align: center;
+  }
+
+  .demo-area.fade-in {
+    animation: fadeIn var(--duration-base) var(--ease-in-out) forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
