@@ -1,0 +1,139 @@
+:root {
+  /* -----------------------------
+  🎨 COLOR SYSTEM
+  Hue-driven design tokens
+  ----------------------------- */
+
+  /* Base hue values (customizable per theme) */
+  --hue-primary: 210;
+  --hue-secondary: 270;
+  --hue-accent: 330;
+  --hue-success: 140;
+  --hue-warning: 45;
+  --hue-error: 5;
+
+  /* Chroma (saturation) & lightness defaults */
+  --sat-strong: 90%;
+  --sat-medium: 70%;
+  --sat-soft: 50%;
+
+  --light-strong: 50%;
+  --light-medium: 60%;
+  --light-soft: 70%;
+
+  /* Derived colors */
+  --color-primary: hsl(var(--hue-primary), var(--sat-strong), 50%);
+  --color-primary-light: hsl(var(--hue-primary), var(--sat-medium), 60%);
+  --color-primary-dark: hsl(var(--hue-primary), var(--sat-strong), 35%);
+
+  --color-secondary: hsl(var(--hue-secondary), var(--sat-strong), 50%);
+  --color-accent: hsl(var(--hue-accent), var(--sat-strong), 55%);
+  --color-success: hsl(var(--hue-success), var(--sat-strong), 45%);
+  --color-warning: hsl(var(--hue-warning), var(--sat-medium), 55%);
+  --color-error: hsl(var(--hue-error), var(--sat-strong), 45%);
+
+  /* Neutral / surface tones */
+  --color-bg: hsl(0, 0%, 100%);
+  --color-bg-alt: hsl(0, 0%, 97%);
+  --color-surface: hsl(0, 0%, 98%);
+  --color-border: hsl(0, 0%, 80%);
+  --color-text: hsl(0, 0%, 10%);
+  --color-text-muted: hsl(0, 0%, 40%);
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: hsl(0, 0%, 6%);
+      --color-bg-alt: hsl(0, 0%, 10%);
+      --color-surface: hsl(0, 0%, 14%);
+      --color-border: hsl(0, 0%, 25%);
+      --color-text: hsl(0, 0%, 90%);
+      --color-text-muted: hsl(0, 0%, 65%);
+    }
+  }
+
+  /* -----------------------------
+  🧱 SPACING & SIZING
+  ----------------------------- */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  --container-sm: 36rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+
+  /* -----------------------------
+  🖋 TYPOGRAPHY
+  ----------------------------- */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Georgia", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --line-height-tight: 1.1;
+  --line-height-base: 1.5;
+  --line-height-loose: 1.75;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* -----------------------------
+  🧊 RADIUS & SHADOWS
+  ----------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-round: 9999px;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+  /* -----------------------------
+  ⚡️ MOTION & TRANSITIONS
+  ----------------------------- */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --duration-fast: 0ms;
+      --duration-base: 0ms;
+      --duration-slow: 0ms;
+    }
+  }
+
+  /* -----------------------------
+  ⚙️ Z-INDEX SYSTEM
+  ----------------------------- */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-overlay: 1100;
+  --z-modal: 1200;
+  --z-popover: 1300;
+  --z-toast: 1400;
+  --z-max: 9999;
+}

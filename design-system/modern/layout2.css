@@ -1,0 +1,137 @@
+/* ----------------------------------
+Containers
+---------------------------------- */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+@media (min-width: 40rem) {
+  .container {
+    max-width: var(--container-sm);
+  }
+}
+
+@media (min-width: 48rem) {
+  .container {
+    max-width: var(--container-md);
+  }
+}
+
+@media (min-width: 64rem) {
+  .container {
+    max-width: var(--container-lg);
+  }
+}
+
+@media (min-width: 80rem) {
+  .container {
+    max-width: var(--container-xl);
+  }
+}
+
+/* ----------------------------------
+Layout Helpers
+---------------------------------- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* Simple responsive grid utility */
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 40rem) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----------------------------------
+Spacing Utilities (Margins + Padding)
+---------------------------------- */
+.m-0 { margin: 0; }
+.p-0 { padding: 0; }
+
+.m-sm { margin: var(--space-sm); }
+.m-md { margin: var(--space-md); }
+.m-lg { margin: var(--space-lg); }
+
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+
+/* Axis-specific */
+.mx-auto { margin-left: auto; margin-right: auto; }
+.px-md { padding-left: var(--space-md); padding-right: var(--space-md); }
+.py-md { padding-top: var(--space-md); padding-bottom: var(--space-md); }
+
+/* ----------------------------------
+Positioning Utilities
+---------------------------------- */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+.inset-0 {
+  top: 0; right: 0; bottom: 0; left: 0;
+}
+
+/* ----------------------------------
+Z-Index Utilities
+---------------------------------- */
+.z-base { z-index: var(--z-base); }
+.z-dropdown { z-index: var(--z-dropdown); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-modal { z-index: var(--z-modal); }
+.z-popover { z-index: var(--z-popover); }
+.z-toast { z-index: var(--z-toast); }
+.z-max { z-index: var(--z-max); }
+
+/* ----------------------------------
+Layout Wrappers / Sections
+---------------------------------- */
+.section {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.section--narrow {
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-xl);
+}

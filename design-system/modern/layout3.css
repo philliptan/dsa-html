@@ -1,0 +1,152 @@
+/* ----------------------------------
+Layout Utilities
+---------------------------------- */
+
+/* 1. Container – central wrapper with responsive max-width */
+.container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .container { max-width: var(--container-sm); }
+}
+
+@media (min-width: 768px) {
+  .container { max-width: var(--container-md); }
+}
+
+@media (min-width: 1024px) {
+  .container { max-width: var(--container-lg); }
+}
+
+@media (min-width: 1280px) {
+  .container { max-width: var(--container-xl); }
+}
+
+/* 2. Stack – vertical spacing layout */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.stack-sm { gap: var(--space-sm); }
+.stack-lg { gap: var(--space-lg); }
+
+/* 3. Cluster – inline-flex layout for grouping items */
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cluster.center {
+  justify-content: center;
+}
+
+/* 4. Sidebar – two-column flexible layout */
+.sidebar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+}
+
+.sidebar > *:first-child {
+  flex-basis: 18rem;
+  flex-grow: 1;
+}
+
+.sidebar > *:last-child {
+  flex-grow: 999;
+  min-width: 50%;
+}
+
+/* 5. Switcher – auto-wrap items horizontally */
+.switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.switcher > * {
+  flex-grow: 1;
+  flex-basis: calc((var(--switcher-threshold, 30rem) - 100%) * 999);
+}
+
+/* 6. Center – horizontally & vertically centers content */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center.fullscreen {
+  min-height: 100vh;
+}
+
+/* 7. Cover – hero-style layout (header, main, footer) */
+.cover {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.cover > * {
+  margin-block: var(--space-md);
+}
+
+.cover > :first-child {
+  margin-block-start: 0;
+}
+
+.cover > :last-child {
+  margin-block-end: 0;
+}
+
+.cover > .main {
+  flex-grow: 1;
+}
+
+/* 8. Grid – modern responsive grid system */
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.grid.auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.grid.auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* 9. Wrapper – max-width limiter for long content */
+.wrapper {
+  max-width: 65ch;
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+/* 10. Flow-space – consistent spacing between siblings */
+.flow > * + * {
+  margin-top: var(--flow-space, var(--space-md));
+}
+
+/* 11. Alignment helpers */
+.align-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* 12. Full-bleed utility for edge-to-edge content */
+.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}

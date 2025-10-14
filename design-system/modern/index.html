@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Components Demo</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="page.css"> <!-- new -->
+</head>
+<body>
+  <div class="cover page">
+    <header class="page-header center">
+      <h1>UI Component Library</h1>
+    </header>
+
+    <main class="main sidebar page-body">
+      <!-- Sidebar -->
+      <nav class="stack page-sidebar">
+        <h2 class="sidebar-title">Components</h2>
+        <ul class="stack-sm sidebar-menu">
+          <li><a href="#buttons">Buttons</a></li>
+          <li><a href="#cards">Cards</a></li>
+          <li><a href="#forms">Forms</a></li>
+          <li><a href="#modals">Modals</a></li>
+          <li><a href="#navbars">Navbars</a></li>
+        </ul>
+      </nav>
+
+      <!-- Main content area -->
+      <section class="stack-lg wrapper page-main" id="component-demos">
+        <article id="buttons" class="stack component-demo">
+          <header class="cluster justify-between align-center component-header">
+            <h2>Buttons</h2>
+            <div class="toolbar cluster">
+              <button class="toolbar-btn">HTML</button>
+              <button class="toolbar-btn">CSS</button>
+              <button class="toolbar-btn">JS</button>
+            </div>
+          </header>
+
+          <div class="demo-area">
+            <button class="btn-primary">Primary Button</button>
+            <button class="btn-secondary">Secondary Button</button>
+          </div>
+
+          <pre class="code-html" style="display:none;"><code>
+&lt;button class="btn-primary"&gt;Primary Button&lt;/button&gt;
+&lt;button class="btn-secondary"&gt;Secondary Button&lt;/button&gt;
+          </code></pre>
+
+          <pre class="code-css" style="display:none;"><code>
+.btn-primary { background: var(--color-primary); color: var(--color-bg); }
+.btn-secondary { background: var(--color-secondary); color: var(--color-bg); }
+          </code></pre>
+
+          <pre class="code-js" style="display:none;"><code>
+console.log("Button demo loaded!");
+          </code></pre>
+        </article>
+      </section>
+    </main>
+
+    <footer class="center page-footer">
+      <p>© 2025 UI Component Library</p>
+    </footer>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const demos = document.querySelectorAll(".component-demo");
+
+    demos.forEach(demo => {
+      const toolbarButtons = demo.querySelectorAll(".toolbar-btn");
+
+      toolbarButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const type = btn.textContent.trim().toLowerCase();
+          const codeBlock = demo.querySelector(`.code-${type}`);
+
+          // Toggle visibility
+          if (codeBlock) {
+            const isVisible = codeBlock.style.display === "block";
+            codeBlock.style.display = isVisible ? "none" : "block";
+          }
+        });
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
