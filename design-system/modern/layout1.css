@@ -1,0 +1,155 @@
+/* ----------------------------------
+Global Layout Variables (optional overrides)
+---------------------------------- */
+:root {
+  --layout-max-width: var(--container-lg);
+  --layout-grid-gap: var(--space-lg);
+  --layout-section-space: var(--space-2xl);
+}
+
+/* ----------------------------------
+Page Wrapper / Containers
+---------------------------------- */
+.container {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-md);
+}
+
+.container--sm {
+  max-width: var(--container-sm);
+}
+
+.container--md {
+  max-width: var(--container-md);
+}
+
+.container--lg {
+  max-width: var(--container-lg);
+}
+
+.container--xl {
+  max-width: var(--container-xl);
+}
+
+/* ----------------------------------
+Sections / Page Blocks
+---------------------------------- */
+section {
+  padding-block: var(--layout-section-space);
+}
+
+section + section {
+  border-top: 1px solid var(--color-border);
+}
+
+.section--light {
+  background-color: var(--color-bg-alt);
+}
+
+.section--dark {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ----------------------------------
+Flex & Grid Utilities
+---------------------------------- */
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.flex--center {
+  justify-content: center;
+}
+
+.flex--between {
+  justify-content: space-between;
+}
+
+.flex--column {
+  flex-direction: column;
+}
+
+.grid {
+  display: grid;
+  gap: var(--layout-grid-gap);
+}
+
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Responsive grids (simple pattern) */
+@media (max-width: 768px) {
+  .grid--2, .grid--3, .grid--4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----------------------------------
+Spacing Utilities
+---------------------------------- */
+.stack > * + * {
+  margin-top: var(--space-md);
+}
+
+.stack--lg > * + * {
+  margin-top: var(--space-lg);
+}
+
+.stack--xl > * + * {
+  margin-top: var(--space-xl);
+}
+
+/* Inline spacing (row gaps) */
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+/* ----------------------------------
+Alignment Helpers
+---------------------------------- */
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center--vh {
+  min-height: 100vh;
+}
+
+/* ----------------------------------
+Page Layout Patterns
+---------------------------------- */
+.layout-sidebar {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: var(--space-lg);
+}
+
+@media (max-width: 900px) {
+  .layout-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.layout-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-overlay);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.layout-footer {
+  border-top: 1px solid var(--color-border);
+  padding-block: var(--space-lg);
+  background-color: var(--color-bg-alt);
+}
