@@ -48,6 +48,30 @@
 
   /* Focus */
   --color-focus-ring: hsl(var(--hue-brand) 90% 55% / 0.5);
+
+  @supports (color: oklch(50% 0.1 0)) {
+    /* Backgrounds */
+    --color-bg-primary: oklch(0.98 0.01 var(--hue-neutral));
+    --color-bg-secondary: oklch(0.95 0.015 var(--hue-neutral));
+
+    /* Text */
+    --color-text-primary: oklch(0.25 0.05 var(--hue-neutral));
+    --color-text-secondary: oklch(0.45 0.02 var(--hue-neutral));
+
+    /* Borders */
+    --color-border: oklch(0.85 0.015 var(--hue-neutral));
+
+    /* Brand & Feedback */
+    --color-brand: oklch(0.55 var(--chroma-strong) var(--hue-brand));
+    --color-brand-hover: color-mix(in oklch, var(--color-brand), black 15%);
+
+    --color-success: oklch(0.55 0.15 var(--hue-success));
+    --color-danger: oklch(0.6 0.18 var(--hue-danger));
+    --color-warning: oklch(0.55 0.1 var(--hue-warning));
+
+    /* Focus */
+    --color-focus-ring: oklch(0.6 0.18 var(--hue-brand) / 0.5);
+  }
 }
 
 :root[data-theme="dark"] {
