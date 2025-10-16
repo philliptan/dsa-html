@@ -1,0 +1,39 @@
+/* -----------------------------
+🌓 THEME VARIANTS
+----------------------------- */
+:root {
+  --theme-transition: background-color var(--duration-slow) var(--ease-in-out),
+                      color var(--duration-slow) var(--ease-in-out);
+}
+
+/* Light (default) */
+:root[data-theme='light'] {
+  --color-bg: hsl(0, 0%, 100%);
+  --color-bg-alt: hsl(0, 0%, 97%);
+  --color-surface: hsl(0, 0%, 98%);
+  --color-border: hsl(0, 0%, 80%);
+  --color-text: hsl(0, 0%, 10%);
+  --color-text-muted: hsl(0, 0%, 40%);
+}
+
+/* Dark */
+:root[data-theme='dark'] {
+  --color-bg: hsl(0, 0%, 6%);
+  --color-bg-alt: hsl(0, 0%, 10%);
+  --color-surface: hsl(0, 0%, 14%);
+  --color-border: hsl(0, 0%, 25%);
+  --color-text: hsl(0, 0%, 90%);
+  --color-text-muted: hsl(0, 0%, 65%);
+}
+
+/* Custom Accent */
+:root[data-theme='ocean'] {
+  --hue-primary: 195;
+  --hue-accent: 175;
+  --color-primary: hsl(var(--hue-primary), var(--sat-strong), 50%);
+  --color-accent: hsl(var(--hue-accent), var(--sat-strong), 45%);
+}
+
+[data-theme='light'] .theme-toggle::after { content: '☀️'; }
+[data-theme='dark'] .theme-toggle::after { content: '🌙'; }
+[data-theme='ocean'] .theme-toggle::after { content: '🌊'; }
