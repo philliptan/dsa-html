@@ -3,56 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Holy Grail Layout</title>
+    <title>Component Browser</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
+
   <body>
     <div class="app-grid">
+      <!-- Header -->
       <header class="app-header split">
         <button class="drawer-toggle" aria-controls="drawer" aria-expanded="false">☰</button>
-        <h1>Dashboard</h1>
+        <h1>Component Library</h1>
       </header>
 
+      <!-- Sidebar / Drawer -->
       <aside id="drawer" class="app-drawer">
-        <nav class="stack">
-          <a href="#">Home</a>
-          <a href="#">Analytics</a>
-          <a href="#">Settings</a>
+        <nav class="stack component-list">
+          <a href="#" data-component="button">Button</a>
+          <a href="#" data-component="card">Card</a>
+          <a href="#" data-component="table">Table</a>
         </nav>
       </aside>
 
-      <main class="app-main">
-        <section class="stack">
-          <h2>Welcome back!</h2>
-          <p>Your content goes here.</p>
+      <!-- Main Content Area -->
+      <main class="app-main component-view">
+        <div class="toolbar">
+          <h2 id="component-title">Select a component</h2>
+          <div class="toolbar-actions">
+            <button id="show-html">HTML</button>
+            <button id="show-css">CSS</button>
+            <button id="show-js">JS</button>
+          </div>
+        </div>
+
+        <section id="component-demo" class="component-demo">
+          <p>Please select a component from the sidebar.</p>
         </section>
+
+        <pre id="code-viewer" class="code-viewer hidden"></pre>
       </main>
 
+      <!-- Footer -->
       <footer class="app-footer">
-        <small>© 2025 Your Company</small>
+        <small>© 2025 Component Library</small>
       </footer>
 
       <div class="drawer-backdrop"></div>
     </div>
 
-    <script>
-      const drawer = document.querySelector('.app-drawer');
-      const toggle = document.querySelector('.drawer-toggle');
-      const backdrop = document.querySelector('.drawer-backdrop');
-
-      toggle.addEventListener('click', () => {
-        drawer.classList.toggle('open');
-        backdrop.classList.toggle('active');
-        const expanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', !expanded);
-      });
-
-      backdrop.addEventListener('click', () => {
-        drawer.classList.remove('open');
-        backdrop.classList.remove('active');
-        toggle.setAttribute('aria-expanded', false);
-      });
-
-    </script>
+    <script src="scripts/main.js"></script>
   </body>
 </html>

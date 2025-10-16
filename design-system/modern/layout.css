@@ -354,3 +354,35 @@ section, header, footer, main {
     display: block;
   }
 }
+
+/* Component browser layout */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.toolbar-actions button {
+  margin-left: var(--space-sm);
+}
+
+.component-demo {
+  padding: var(--space-lg);
+  background: var(--color-bg);
+  min-height: 300px;
+}
+
+.code-viewer {
+  padding: var(--space-md);
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.hidden {
+  display: none;
+}

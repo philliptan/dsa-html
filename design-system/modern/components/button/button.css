@@ -1,0 +1,11 @@
+.btn {
+  background: var(--color-primary, royalblue);
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--color-primary-hover, dodgerblue);
+}
