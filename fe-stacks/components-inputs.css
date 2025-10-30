@@ -16,18 +16,23 @@
 }
 
 .input {
-  padding: var(--space-sm) var(--space-md);
+  --_padding-y: calc(var(--space-sm) * var(--density-scale));
+  --_padding-x: calc(var(--space-md) * var(--density-scale));
+  --_focus-color: var(--focus-ring-color);
+  --_duration: var(--motion-duration-fast);
+
+  padding: var(--_padding-y) var(--_padding-x);
   border: 1px solid var(--color-muted);
   border-radius: var(--radius);
   background: var(--color-bg);
   color: var(--color-fg);
   font: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--_duration) var(--motion-ease), box-shadow var(--_duration) var(--motion-ease);
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  outline: var(--focus-ring-width) solid var(--_focus-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .input[aria-invalid="true"] {
