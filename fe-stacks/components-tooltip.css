@@ -1,4 +1,4 @@
-/* components-tooltip.css */
+/* components-tooltip-extended.css */
 .tooltip {
   position: relative;
 }
@@ -6,9 +6,9 @@
 .tooltip[data-show="true"]::after {
   content: attr(data-tip);
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + var(--space-xs));
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(0.25rem);
   background: var(--color-fg);
   color: var(--color-bg);
   padding: var(--space-xs) var(--space-sm);
@@ -16,5 +16,21 @@
   font-size: var(--font-size-sm);
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
-  z-index: var(--z-tooltip);
+  opacity: 0;
+  animation: tooltip-in var(--motion-duration-base) var(--motion-ease) forwards;
+}
+
+@keyframes tooltip-in {
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip[data-show="true"]::after {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }

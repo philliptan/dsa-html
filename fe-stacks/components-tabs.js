@@ -1,8 +1,18 @@
-// components-tabs.js
+// components-tabs-extended.js
 export function setupTabs() {
-  document.querySelectorAll('.tabs').forEach(tabContainer => {
-    const tabs = tabContainer.querySelectorAll('.tab');
-    const panels = tabContainer.querySelectorAll('.tab-panel');
+  document.querySelectorAll('.tabs').forEach(tabGroup => {
+    const tabs = tabGroup.querySelectorAll('[role="tab"]');
+    const panels = tabGroup.querySelectorAll('[role="tabpanel"]');
+
+    function activate(index) {
+      tabs.forEach((tab, i) => {
+        const active = i === index;
+        tab.setAttribute('aria-selected', active);
+        tab.tabIndex = active ? 0 : -1;
+        panels[i].dataset.active = active;
+        panels[i].hidden = !active;
+      });
+    }
 
     tabs.forEach((tab, i) => {
       tab.addEventListener('click', () => activate(i));
@@ -12,13 +22,6 @@ export function setupTabs() {
       });
     });
 
-    function activate(index) {
-      tabs.forEach((t, j) => {
-        const selected = j === index;
-        t.setAttribute('aria-selected', selected);
-        panels[j].hidden = !selected;
-      });
-    }
-    activate(0); // default
+    activate(0);
   });
 }

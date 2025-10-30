@@ -1,9 +1,11 @@
-// components-tooltip.js
+// components-tooltip-extended.js
 export function setupTooltips() {
   document.querySelectorAll('.tooltip').forEach(el => {
-    el.addEventListener('mouseenter', () => el.dataset.show = 'true');
-    el.addEventListener('mouseleave', () => el.dataset.show = 'false');
-    el.addEventListener('focus', () => el.dataset.show = 'true');
-    el.addEventListener('blur', () => el.dataset.show = 'false');
+    const show = () => el.dataset.show = 'true';
+    const hide = () => el.dataset.show = 'false';
+    el.addEventListener('mouseenter', show);
+    el.addEventListener('mouseleave', hide);
+    el.addEventListener('focus', show);
+    el.addEventListener('blur', hide);
   });
 }

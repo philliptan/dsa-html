@@ -1,37 +1,44 @@
-/* components-formfield.css */
+/* components-formfield-extended.css */
 .form-field {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
-  font-size: var(--font-size-sm);
-}
-
-.form-field__label {
+  font-size: var(--font-size-md);
   color: var(--color-fg);
-  font-weight: 500;
 }
 
 .form-field__input {
-  padding: calc(var(--space-sm) * var(--density-scale)) var(--space-md);
+  width: 100%;
+  padding: var(--space-md) var(--space-sm) var(--space-sm);
   border: 1px solid var(--color-muted);
   border-radius: var(--radius);
   background: var(--color-bg);
-  color: var(--color-fg);
-  transition: border-color var(--motion-duration-fast) var(--motion-ease);
+  transition: border-color var(--motion-duration-base) var(--motion-ease);
 }
 
-.form-field__input:focus-visible {
-  outline: var(--focus-ring-width) solid var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
+.form-field__input:focus {
   border-color: var(--color-primary);
+}
+
+.form-field__label {
+  position: absolute;
+  top: 0.9rem;
+  left: var(--space-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  pointer-events: none;
+  transition: all var(--motion-duration-base) var(--motion-ease);
+}
+
+.form-field__input:focus + .form-field__label,
+.form-field__input:not(:placeholder-shown) + .form-field__label {
+  top: 0.3rem;
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-primary);
 }
 
 .form-field__error {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
-}
-
-.form-field__helper {
-  color: var(--color-muted);
-  font-size: var(--font-size-sm);
+  margin-top: var(--space-xs);
 }

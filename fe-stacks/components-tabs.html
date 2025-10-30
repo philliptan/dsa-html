@@ -1,12 +1,12 @@
-<div class="tabs" role="tablist">
-  <div class="tab-list">
-    <button class="tab" aria-selected="true">Profile</button>
-    <button class="tab">Settings</button>
-    <button class="tab">Billing</button>
+<div class="tabs">
+  <div class="tab-list" role="tablist">
+    <button class="tab" role="tab" aria-selected="true">Overview</button>
+    <button class="tab" role="tab">Details</button>
+    <button class="tab" role="tab">Reviews</button>
   </div>
   <div class="tab-panels">
-    <div class="tab-panel">Profile content</div>
-    <div class="tab-panel" hidden>Settings content</div>
-    <div class="tab-panel" hidden>Billing content</div>
+    <div class="tab-panel" role="tabpanel" data-active="true">Overview content</div>
+    <div class="tab-panel" role="tabpanel">Details content</div>
+    <div class="tab-panel" role="tabpanel">Reviews content</div>
   </div>
 </div>
