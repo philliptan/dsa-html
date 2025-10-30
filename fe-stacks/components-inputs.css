@@ -1,0 +1,55 @@
+/* components-inputs.css */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-fg);
+}
+
+.helper {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+.input {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix,
+.input-suffix {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+}
+
+.input-prefix { left: var(--space-sm); }
+.input-suffix { right: var(--space-sm); }
+
+.input.has-prefix { padding-left: 2rem; }
+.input.has-suffix { padding-right: 2rem; }

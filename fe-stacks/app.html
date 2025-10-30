@@ -32,7 +32,23 @@
   <script src="theme-switcher.js"></script>
   <script type="module">
     import { setupAppShell } from './app.js';
+    import { setupDataDemo } from './services-demo.js';
+
     setupAppShell();
+
+    // Add a route for data demo
+    window.addEventListener('hashchange', () => {
+      if (location.hash === '#data') setupDataDemo();
+    });
+
+    // Add link to header
+    const nav = document.querySelector('nav');
+    const link = document.createElement('a');
+    link.href = '#data';
+    link.textContent = 'Data Demo';
+    link.className = 'btn';
+    link.dataset.variant = 'outline';
+    nav.appendChild(link);
   </script>
 </body>
 </html>

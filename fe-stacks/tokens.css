@@ -36,6 +36,27 @@
   --max-width-lg: 60rem;   /* ~960px  */
   --max-width-xl: 80rem;   /* ~1280px */
 
+  /* --- Focus Ring --- */
+  --focus-ring-color: hsl(var(--hue), 90%, 65%);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* --- Density (scale for compact/comfortable/spacious) --- */
+  --density-scale: 1; /* 0.8 = compact, 1 = normal, 1.2 = spacious */
+
+  /* --- Motion / Animation --- */
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 250ms;
+  --motion-duration-slow: 400ms;
+  --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* --- Sizing map (use consistently in components) --- */
+  --size-xs: calc(0.75rem * var(--density-scale));
+  --size-sm: calc(0.875rem * var(--density-scale));
+  --size-md: calc(1rem * var(--density-scale));
+  --size-lg: calc(1.25rem * var(--density-scale));
+  --size-xl: calc(1.5rem * var(--density-scale));
+
   color-scheme: light;
 }
 
