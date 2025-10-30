@@ -1,0 +1,54 @@
+/* Page layouts built with tokens + layout utilities */
+
+/* === Global page wrapper === */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Header / Footer === */
+.page__header,
+.page__footer {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-muted);
+  padding: var(--space-md);
+}
+
+.page__footer {
+  border-top: 1px solid var(--color-muted);
+  margin-top: auto;
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+/* === Main content area === */
+.page__content {
+  flex: 1;
+  padding: var(--space-lg) var(--space-md);
+}
+
+/* === Dashboard grid === */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-md);
+}
+
+/* === Login screen === */
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.login-card {
+  max-width: var(--max-width-sm);
+  width: 100%;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+  border-radius: var(--radius);
+}

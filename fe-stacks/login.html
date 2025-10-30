@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="utils.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="features.css">
+  <link rel="stylesheet" href="pages.css">
+</head>
+<body class="login-screen">
+  <form id="login-form" class="login-card stack" autocomplete="off">
+    <h2>Sign In</h2>
+    <input class="input" type="email" placeholder="Email" required>
+    <input class="input" type="password" placeholder="Password" required>
+    <button class="btn" data-variant="primary" type="submit">Login</button>
+  </form>
+
+  <script src="theme.js"></script>
+  <script src="theme-switcher.js"></script>
+  <script type="module">
+    import { setupLogin } from './pages.js';
+    setupLogin();
+  </script>
+</body>
+</html>
