@@ -2,21 +2,38 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Utilities Extended</title>
+  <title>Accessible Stateful Components</title>
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="themes.css">
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="utils.css">
+  <link rel="stylesheet" href="components.css">
 </head>
 <body>
   <div class="container stack">
     <header class="section inline" data-justify="space-between">
-      <h1>Smart Utilities</h1>
-      <button id="theme-btn">Switch Theme</button>
+      <h1>Accessible Components</h1>
+      <button id="theme-btn" class="btn" data-variant="outline">Switch Theme</button>
     </header>
 
-    <section class="section text-center">
-      <div id="contrast-box" class="rounded p-md">Dynamic Utilities in Action</div>
+    <section class="section grid">
+      <div class="card" data-variant="outlined">
+        <div class="card__header">Form Validation</div>
+        <input class="input" type="email" placeholder="Email" aria-invalid="true">
+        <small style="color:var(--color-danger);">Invalid email format</small>
+        <div class="card__footer">
+          <button class="btn" data-variant="primary">Retry</button>
+        </div>
+      </div>
+
+      <div class="card" data-variant="elevated">
+        <div class="card__header">Button States</div>
+        <p>Try the loading button below.</p>
+        <div class="card__footer inline" data-gap="sm">
+          <button class="btn" data-variant="accent" data-action="load-demo">Load</button>
+          <button class="btn" data-variant="primary" disabled>Disabled</button>
+        </div>
+      </div>
     </section>
 
     <footer class="section inline" data-justify="center" data-gap="lg">
@@ -25,7 +42,11 @@
     </footer>
   </div>
 
+  <script src="theme.js"></script>
   <script src="theme-switcher.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module">
+    import { enableInteractiveComponents } from './components.js';
+    enableInteractiveComponents();
+  </script>
 </body>
 </html>

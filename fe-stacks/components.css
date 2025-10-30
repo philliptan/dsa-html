@@ -1,0 +1,117 @@
+/* Ensure padding + border count inside total width */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius);
+  padding: var(--space-sm) var(--space-md);
+  transition: background 0.25s, transform 0.15s, opacity 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus-visible {
+  outline: 2px solid hsl(var(--hue), 90%, 70%);
+  outline-offset: 2px;
+}
+
+.btn[data-variant="primary"] {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn[data-variant="accent"] {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.btn[data-variant="outline"] {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+/* Disabled + loading states */
+.btn:disabled,
+.btn[data-state="loading"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn[data-state="loading"]::after {
+  content: '';
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Inputs --- */
+.input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger, hsl(0,75%,55%));
+  background: hsl(var(--hue), 50%, 97%);
+}
+
+/* --- Card --- */
+.card {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: var(--space-md);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card[data-variant="elevated"] {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+.card[data-variant="outlined"] {
+  box-shadow: none;
+  border: 1px solid var(--color-muted);
+}
+
+.card__header {
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+.card__footer {
+  margin-top: var(--space-md);
+  text-align: right;
+}
