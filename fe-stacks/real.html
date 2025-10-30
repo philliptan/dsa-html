@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HueUI Dashboard</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="utils.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="features.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="organisms-navbar.css">
+  <link rel="stylesheet" href="organisms-sidebar.css">
+  <link rel="stylesheet" href="organisms-modal.css">
+  <link rel="stylesheet" href="organisms-toast.css">
+</head>
+<body class="app-shell">
+
+  <!-- Navbar -->
+  <nav class="navbar" data-open="false">
+    <div class="navbar__brand">HueUI</div>
+    <div class="navbar__menu">
+      <a href="#home" class="btn" data-variant="ghost">Home</a>
+      <a href="#dashboard" class="btn" data-variant="ghost">Dashboard</a>
+    </div>
+    <div class="navbar__actions">
+      <button id="menu-toggle" class="btn" data-variant="outline" aria-expanded="false">☰</button>
+      <button id="theme-toggle" class="btn" data-variant="accent">🌓</button>
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" data-collapsed="true">
+    <button class="sidebar__toggle" aria-expanded="false" aria-controls="sidebar-nav">☰</button>
+    <nav id="sidebar-nav" class="stack" role="navigation" style="margin-top: var(--space-lg);">
+      <a href="#overview" class="btn" data-variant="ghost">Overview</a>
+      <a href="#projects" class="btn" data-variant="ghost">Projects</a>
+      <a href="#team" class="btn" data-variant="ghost">Team</a>
+    </nav>
+  </aside>
+
+  <!-- Main Dashboard -->
+  <main class="app-main" style="margin-left: 15rem;">
+    <section class="dashboard grid">
+      <div class="card" data-variant="outlined">
+        <div class="card__header">Team Activity</div>
+        <p>Shows latest updates from team members.</p>
+        <div class="card__footer">
+          <button class="btn" id="open-modal-btn" data-variant="primary">View Details</button>
+        </div>
+      </div>
+
+      <div class="card" data-variant="outlined">
+        <div class="card__header">System Health</div>
+        <p>Displays metrics from the service layer.</p>
+        <div class="card__footer">
+          <button class="btn" id="load-data-btn" data-variant="accent">Load Data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal-backdrop" class="modal-backdrop" data-open="false">
+    <div class="modal" tabindex="-1" aria-hidden="true">
+      <h2>Team Activity</h2>
+      <p>This modal pulls live data from your API service.</p>
+      <footer class="inline" data-gap="sm">
+        <button id="close-modal-btn" class="btn" data-variant="outline">Close</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast-container" role="region" aria-live="polite"></div>
+
+  <script src="theme.js"></script>
+  <script src="theme-switcher.js"></script>
+  <script type="module" src="integration-dashboard.js"></script>
+</body>
+</html>

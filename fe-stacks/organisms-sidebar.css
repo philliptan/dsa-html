@@ -1,0 +1,34 @@
+/* organisms-sidebar.css */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 15rem;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-muted);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-md);
+  transform: translateX(0);
+  transition: transform var(--motion-duration-base) var(--motion-ease);
+  z-index: var(--z-overlay);
+}
+
+.sidebar[data-collapsed="true"] {
+  transform: translateX(-100%);
+}
+
+.sidebar__toggle {
+  position: absolute;
+  top: var(--space-md);
+  right: -2.5rem;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
