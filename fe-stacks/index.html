@@ -30,6 +30,13 @@
       <div class="card__header">Quick Actions</div>
       <button class="btn" data-variant="accent" id="show-toast-btn">Notify</button>
     </div>
+
+    <div class="section inline" data-gap="md">
+      <label>Density:</label>
+      <input id="density-slider" type="range" min="0.8" max="1.2" step="0.1" value="1">
+
+      <button class="btn" data-variant="accent" id="motion-toggle">Toggle Motion</button>
+    </div>
   </main>
 
   <footer class="page__footer">
@@ -44,6 +51,18 @@
     import { showToast } from './features.js';
     document.querySelector('#show-toast-btn')
       .addEventListener('click', () => showToast('Action Completed!', 'accent'));
+  </script>
+  <script type="module">
+    import { setDensity } from './utils-density.js';
+
+    const motionBtn = document.querySelector('#motion-toggle');
+    let motionOn = true;
+    motionBtn.addEventListener('click', () => {
+      motionOn = !motionOn;
+      document.documentElement.style.setProperty('--motion-duration-base', motionOn ? '250ms' : '0ms');
+      document.documentElement.style.setProperty('--motion-duration-fast', motionOn ? '150ms' : '0ms');
+      document.documentElement.style.setProperty('--motion-duration-slow', motionOn ? '400ms' : '0ms');
+    });
   </script>
 </body>
 </html>

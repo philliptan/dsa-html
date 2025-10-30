@@ -1,0 +1,20 @@
+/* components-tooltip.css */
+.tooltip {
+  position: relative;
+}
+
+.tooltip[data-show="true"]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-fg);
+  color: var(--color-bg);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  z-index: var(--z-tooltip);
+}
