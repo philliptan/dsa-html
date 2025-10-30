@@ -1,24 +1,25 @@
 /* components-switch.css */
 .switch {
-  position: relative;
-  width: 2.5rem;
-  height: 1.25rem;
+  width: calc(2.5rem * var(--density-scale));
+  height: calc(1.25rem * var(--density-scale));
   background: var(--color-muted);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.25s;
+  transition: background var(--motion-duration-base) var(--motion-ease);
 }
+
 .switch::after {
   content: '';
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 1rem;
-  height: 1rem;
+  width: calc(1rem * var(--density-scale));
+  height: calc(1rem * var(--density-scale));
   border-radius: 50%;
   background: #fff;
-  transition: transform 0.25s;
+  transition: transform var(--motion-duration-base) var(--motion-ease);
 }
+
 .switch[data-on="true"] {
   background: var(--color-primary);
 }
