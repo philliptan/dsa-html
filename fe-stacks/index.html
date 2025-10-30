@@ -2,37 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Accessible Stateful Components</title>
+  <title>Accessible Features</title>
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="themes.css">
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="utils.css">
   <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="features.css">
 </head>
 <body>
   <div class="container stack">
     <header class="section inline" data-justify="space-between">
-      <h1>Accessible Components</h1>
+      <h1>Accessible Modals + Toasts</h1>
       <button id="theme-btn" class="btn" data-variant="outline">Switch Theme</button>
     </header>
 
-    <section class="section grid">
-      <div class="card" data-variant="outlined">
-        <div class="card__header">Form Validation</div>
-        <input class="input" type="email" placeholder="Email" aria-invalid="true">
-        <small style="color:var(--color-danger);">Invalid email format</small>
-        <div class="card__footer">
-          <button class="btn" data-variant="primary">Retry</button>
-        </div>
-      </div>
+    <section class="section stack">
+      <h2>Modal</h2>
+      <button class="btn" id="open-modal-btn" data-variant="primary">Open Modal</button>
+    </section>
 
-      <div class="card" data-variant="elevated">
-        <div class="card__header">Button States</div>
-        <p>Try the loading button below.</p>
-        <div class="card__footer inline" data-gap="sm">
-          <button class="btn" data-variant="accent" data-action="load-demo">Load</button>
-          <button class="btn" data-variant="primary" disabled>Disabled</button>
-        </div>
+    <section class="section stack">
+      <h2>Toasts</h2>
+      <div class="inline" data-gap="sm">
+        <button class="btn" data-variant="primary" id="toast-success">Success</button>
+        <button class="btn" data-variant="accent" id="toast-accent">Accent</button>
+        <button class="btn" data-variant="outline" id="toast-danger">Error</button>
       </div>
     </section>
 
@@ -42,11 +37,26 @@
     </footer>
   </div>
 
+  <!-- Accessible Modal -->
+  <div id="modal-backdrop" class="modal-backdrop" data-open="false" role="dialog" aria-modal="true">
+    <div class="modal" tabindex="-1" aria-hidden="true">
+      <header>Accessible Modal</header>
+      <p>This modal traps focus and closes with ESC or outside click.</p>
+      <footer>
+        <button id="close-modal-btn" class="btn" data-variant="accent">Close</button>
+      </footer>
+    </div>
+  </div>
+
   <script src="theme.js"></script>
   <script src="theme-switcher.js"></script>
   <script type="module">
-    import { enableInteractiveComponents } from './components.js';
-    enableInteractiveComponents();
+    import { setupModal, showToast } from './features.js';
+    setupModal();
+
+    document.querySelector('#toast-success').addEventListener('click', () => showToast('Success!', 'success'));
+    document.querySelector('#toast-accent').addEventListener('click', () => showToast('Accent Info', 'accent'));
+    document.querySelector('#toast-danger').addEventListener('click', () => showToast('Something went wrong', 'danger'));
   </script>
 </body>
 </html>

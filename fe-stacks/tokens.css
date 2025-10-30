@@ -17,6 +17,25 @@
   --space-md: 1rem;
   --space-lg: 2rem;
 
+  /* --- Z-index scale --- */
+  --z-base: 1;
+  --z-overlay: 10;
+  --z-modal: 1000;
+  --z-toast: 1100;
+  --z-tooltip: 1200;
+
+  /* --- Shadows / Elevation --- */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1); /* Subtle raised elements (buttons, inputs) */
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.15); /* Cards, surfaces */
+  --shadow-lg: 0 6px 18px rgba(0,0,0,0.2); /* Prominent surfaces */
+  --shadow-xl: 0 10px 30px rgba(0,0,0,0.3); /* Overlays / modals */
+
+  /* --- Max widths (layout constraints) --- */
+  --max-width-sm: 20rem;   /* ~320px  */
+  --max-width-md: 40rem;   /* ~640px  */
+  --max-width-lg: 60rem;   /* ~960px  */
+  --max-width-xl: 80rem;   /* ~1280px */
+
   color-scheme: light;
 }
 

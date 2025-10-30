@@ -87,7 +87,7 @@
   background: var(--color-bg);
   color: var(--color-fg);
   border-radius: var(--radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   padding: var(--space-md);
   transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -98,7 +98,7 @@
 }
 
 .card[data-variant="elevated"] {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .card[data-variant="outlined"] {
