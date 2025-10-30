@@ -2,17 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Theming</title>
+  <title>Layout Patterns</title>
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="layout.css">
 </head>
 <body>
-  <h1>Smart Theme System</h1>
-  <button id="theme-btn">Switch Theme</button>
-  <div style="margin-top:1rem;">
+  <div class="container stack">
+    <header class="section">
+      <h1>Layout Patterns</h1>
+      <button id="theme-btn">Switch Theme</button>
+    </header>
+
+    <section class="section stack">
+      <h2>Stack Example</h2>
+      <div class="stack">
+        <div style="background:var(--color-primary);color:#fff;padding:1rem;">Item 1</div>
+        <div style="background:var(--color-accent);color:#fff;padding:1rem;">Item 2</div>
+        <div style="background:var(--color-primary);color:#fff;padding:1rem;">Item 3</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Grid Example</h2>
+      <div class="grid">
+        <div style="background:var(--color-primary);color:#fff;padding:2rem;">Card 1</div>
+        <div style="background:var(--color-accent);color:#fff;padding:2rem;">Card 2</div>
+        <div style="background:var(--color-success, hsl(140,70%,45%));color:#fff;padding:2rem;">Card 3</div>
+        <div style="background:var(--color-danger, hsl(0,75%,55%));color:#fff;padding:2rem;">Card 4</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="container section inline" style="justify-content:space-between;">
     <label>Hue:</label>
     <input id="hue-slider" type="range" min="0" max="360" value="210">
   </div>
+
   <script src="theme-switcher.js"></script>
 </body>
 </html>
