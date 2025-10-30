@@ -2,34 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Responsive Layout Utilities</title>
+  <title>Smart Utilities Extended</title>
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="themes.css">
   <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="utils.css">
 </head>
 <body>
   <div class="container stack">
     <header class="section inline" data-justify="space-between">
-      <h1 class="fluid-text">Responsive Layout</h1>
+      <h1>Smart Utilities</h1>
       <button id="theme-btn">Switch Theme</button>
     </header>
 
-    <section class="section stack" data-gap="lg">
-      <h2>Stack + Gap Variants</h2>
-      <div class="stack" data-gap="sm">
-        <div style="background:var(--color-primary);color:#fff;padding:1rem;">Small gap</div>
-        <div style="background:var(--color-accent);color:#fff;padding:1rem;">Between items</div>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Fluid Grid</h2>
-      <div class="grid">
-        <div style="background:var(--color-primary);color:#fff;padding:2rem;">Card 1</div>
-        <div style="background:var(--color-accent);color:#fff;padding:2rem;">Card 2</div>
-        <div style="background:var(--color-success, hsl(140,70%,45%));color:#fff;padding:2rem;">Card 3</div>
-        <div style="background:var(--color-danger, hsl(0,75%,55%));color:#fff;padding:2rem;">Card 4</div>
-      </div>
+    <section class="section text-center">
+      <div id="contrast-box" class="rounded p-md">Dynamic Utilities in Action</div>
     </section>
 
     <footer class="section inline" data-justify="center" data-gap="lg">
@@ -39,5 +26,6 @@
   </div>
 
   <script src="theme-switcher.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
