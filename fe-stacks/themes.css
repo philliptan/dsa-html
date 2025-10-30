@@ -1,0 +1,44 @@
+:root {
+  --transition-theme: background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+  transition: var(--transition-theme);
+}
+
+/* Smooth theme transitions */
+* {
+  transition: var(--transition-theme);
+}
+
+/* Base + variant themes */
+[data-theme="light"] {
+  --color-bg: hsl(var(--hue), 30%, 98%);
+  --color-fg: hsl(var(--hue), 15%, 10%);
+  --color-primary: hsl(var(--hue), 90%, 55%);
+  --color-accent: hsl(280, 80%, 60%);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-bg: hsl(var(--hue), 20%, 8%);
+  --color-fg: hsl(var(--hue), 15%, 92%);
+  --color-primary: hsl(var(--hue), 85%, 60%);
+  --color-accent: hsl(280, 75%, 70%);
+  color-scheme: dark;
+}
+
+[data-theme="brand"] {
+  --color-bg: hsl(45, 40%, 94%);
+  --color-fg: hsl(45, 30%, 12%);
+  --color-primary: hsl(25, 85%, 55%);
+  --color-accent: hsl(15, 90%, 50%);
+  color-scheme: light;
+}
+
+/* Basic button style for UI */
+button {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: var(--color-primary);
+}

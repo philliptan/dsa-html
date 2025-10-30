@@ -1,0 +1,51 @@
+:root {
+  /* Base hue preference */
+  --hue: 210;
+  --saturation: 90%;
+  --lightness: 55%;
+
+  /* Derived colors */
+  --color-bg: hsl(var(--hue), 30%, 98%);
+  --color-fg: hsl(var(--hue), 15%, 10%);
+  --color-primary: hsl(var(--hue), var(--saturation), var(--lightness));
+  --color-muted: hsl(var(--hue), 10%, 70%);
+
+  /* Typography + spacing */
+  --font-base: system-ui, sans-serif;
+  --radius: 8px;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+
+  color-scheme: light;
+}
+
+/* 🌙 Dark mode auto via media query */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: hsl(var(--hue), 20%, 8%);
+    --color-fg: hsl(var(--hue), 15%, 92%);
+    --color-primary: hsl(var(--hue), var(--saturation), 60%);
+    --color-muted: hsl(var(--hue), 10%, 40%);
+    color-scheme: dark;
+  }
+}
+
+/* Quick reset for preview */
+body {
+  margin: 0;
+  font-family: var(--font-base);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  padding: var(--space-lg);
+  transition: background 0.3s, color 0.3s;
+}
+
+button {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
