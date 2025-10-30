@@ -1,0 +1,30 @@
+/* === App Shell === */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Global header/footer */
+.app-header,
+.app-footer {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-muted);
+  background: var(--color-bg);
+}
+
+.app-footer {
+  border-top: 1px solid var(--color-muted);
+  margin-top: auto;
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+/* Main content slot */
+.app-main {
+  flex: 1;
+  padding: var(--space-lg) var(--space-md);
+}

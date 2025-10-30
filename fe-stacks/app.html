@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>App Shell</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="utils.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="features.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body class="app-shell">
+  <header class="app-header inline" data-justify="space-between">
+    <nav class="inline" data-gap="md">
+      <a href="#home" class="btn" data-variant="outline">Home</a>
+      <a href="#dashboard" class="btn" data-variant="outline">Dashboard</a>
+      <a href="#settings" class="btn" data-variant="outline">Settings</a>
+    </nav>
+    <button id="theme-btn" class="btn" data-variant="primary">Switch Theme</button>
+  </header>
+
+  <main class="app-main"></main>
+
+  <footer class="app-footer">
+    © 2025 — Hue-driven UI System
+  </footer>
+
+  <script src="theme.js"></script>
+  <script src="theme-switcher.js"></script>
+  <script type="module">
+    import { setupAppShell } from './app.js';
+    setupAppShell();
+  </script>
+</body>
+</html>
